@@ -1,18 +1,63 @@
 #ifndef GDWG_GRAPH_HPP
 #define GDWG_GRAPH_HPP
 #include <map>
+#include <vector>
+#include <algorithm>
+#include <memory>
+#include <iostream>
 // This will not compile straight away
 namespace gdwg {
 	template<typename N, typename E>
 	class graph{
 		public:
 			// Constructor
-			graph();
-			graph(std::initializer_list<N> il);
-			graph(graph&& other) noexcept;
-			auto operator=(graph&& other) noexcept -> graph&;
-			graph(graph const& other) noexcept;
-			auto operator=(graph const& other) -> graph&;
+			graph() noexcept {
+				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+			}
+			graph(std::initializer_list<N> list){
+				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				for (auto itr = list.begin(); itr != list.end(); ++itr) {
+					nodes_.get()->insert({*itr, std::vector<value_type>{}});
+				}
+			}
+			template<typename InputIt>
+			graph(InputIt first, InputIt last){
+				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				for (auto itr = first; itr != last; ++itr) {
+					nodes_.get()->insert({*itr, std::vector<value_type>{}});
+				}
+
+
+			}
+			graph(graph&& other) noexcept: nodes_{std::exchange(other.nodes_, nullptr)}{};
+
+			auto operator=(graph&& other) noexcept -> graph&{
+				nodes_ = std::exchange(other.nodes_, nullptr);
+				return *this;
+			}
+
+			graph(graph const& other) noexcept{
+				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				for (auto it = other.nodes_.get()->begin(); it != other.nodes_.get()->end(); ++it) {
+					nodes_.get()->insert({it->first, it->second});
+				}
+			}
+			auto operator=(graph const& other) -> graph&{
+				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				for (auto it = other.nodes_.get()->begin(); it != other.nodes_.get()->end(); ++it) {
+					nodes_.get()->insert({it->first, it->second});
+				}
+				return *this;
+			}
+
+			//DEBUG DELETE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			auto print_key() ->void{
+				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
+					std::cout << it->first    // string (key)
+						<< ':'
+						<< std::endl;
+				}
+			}
 
 			// Modifiers
 			auto insert_node(N const& value) -> bool;
@@ -58,7 +103,12 @@ namespace gdwg {
 			// auto operator==(iterator const& other) -> bool;
 
 		private:
-			std::unique_ptr<std::map<N,E>> values_;
+			struct value_type {
+				N from;
+				N to;
+				E weight;
+			};
+			std::unique_ptr<std::map<N, std::vector<value_type>>> nodes_;
 	};
 
 } // namespace gdwg
