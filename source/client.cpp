@@ -3,19 +3,19 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cassert>
 
 auto main() -> int {
 	auto v = std::vector<int>{1,2,5,69,96,100};
 	auto g = gdwg::graph<int, int>(v.begin(), v.end());
 	// g.print_key();
 	auto g2 = gdwg::graph<int, int>{123,3242,3565,695235,96,102340};
-	g2.print_key();
-	auto g3 = std::move(g2);
-	g3.print_key();
+	assert (g2.insert_node(39) == true);
+	assert (g2.insert_node(39) == false);
+	std::cout << g2;
+	g2.insert_edge(39,96,-23);
+	std::cout << g2;
 
-	auto g4 = g3;
-	g4.print_key();
-	g3.print_key();
 
 	// This will not compile straight away
 	// auto g = gdwg::graph<std::string, int>{};

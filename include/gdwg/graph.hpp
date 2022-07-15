@@ -12,19 +12,19 @@ namespace gdwg {
 		public:
 			// Constructor
 			graph() noexcept {
-				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				nodes_ = std::make_unique<std::map<N, std::vector<std::pair<N,E>>>>();
 			}
 			graph(std::initializer_list<N> list){
-				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				nodes_ = std::make_unique<std::map<N, std::vector<std::pair<N,E>>>>();
 				for (auto itr = list.begin(); itr != list.end(); ++itr) {
-					nodes_.get()->insert({*itr, std::vector<value_type>{}});
+					nodes_.get()->insert({*itr, std::vector<std::pair<N,E>>{}});
 				}
 			}
 			template<typename InputIt>
 			graph(InputIt first, InputIt last){
-				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				nodes_ = std::make_unique<std::map<N, std::vector<std::pair<N,E>>>>();
 				for (auto itr = first; itr != last; ++itr) {
-					nodes_.get()->insert({*itr, std::vector<value_type>{}});
+					nodes_.get()->insert({*itr, std::vector<std::pair<N,E>>{}});
 				}
 
 
@@ -37,31 +37,41 @@ namespace gdwg {
 			}
 
 			graph(graph const& other) noexcept{
-				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				nodes_ = std::make_unique<std::map<N, std::vector<std::pair<N,E>>>>();
 				for (auto it = other.nodes_.get()->begin(); it != other.nodes_.get()->end(); ++it) {
 					nodes_.get()->insert({it->first, it->second});
 				}
 			}
 			auto operator=(graph const& other) -> graph&{
-				nodes_ = std::make_unique<std::map<N, std::vector<value_type>>>();
+				nodes_ = std::make_unique<std::map<N, std::vector<std::pair<N,E>>>>();
 				for (auto it = other.nodes_.get()->begin(); it != other.nodes_.get()->end(); ++it) {
 					nodes_.get()->insert({it->first, it->second});
 				}
 				return *this;
 			}
 
-			//DEBUG DELETE ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			auto print_key() ->void{
-				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
-					std::cout << it->first    // string (key)
-						<< ':'
-						<< std::endl;
+			// Modifiers
+			auto insert_node(N const& value) -> bool{
+				if (!is_node(value)) {
+				// not found
+					nodes_.get()->insert({value, std::vector<std::pair<N,E>>{}});
+					return true;
 				}
+				// found
+				return false;
 			}
 
-			// Modifiers
-			auto insert_node(N const& value) -> bool;
-			auto insert_edge(N const& src, N const& dst, E const& weight) -> bool;
+			auto insert_edge(N const& src, N const& dst, E const& weight) -> bool{
+				if (is_node(src) && is_node(dst)) {
+					if (std::find(nodes_.get()->at(src).begin(), nodes_.get()->at(src).end(), std::make_pair(dst, weight)) == nodes_.get()->at(src).end()){
+						nodes_.get()->at(src).push_back(std::make_pair(dst, weight));
+						return true;
+					}
+					return false;
+				}
+				throw std::runtime_error("Cannot call gdwg::graph<N, E>::insert_edge when either src or dst node does not exist");
+				return false;
+			}
 			auto replace_node(N const& old_data, N const& new_data) -> bool;
 			auto merge_replace_node(N const& old_data, N const& new_data) -> void;
 			auto erase_node(N const& value) -> bool;
@@ -71,7 +81,9 @@ namespace gdwg {
 			auto clear() noexcept -> void;
 
 			// Accessors
-			[[nodiscard]] auto is_node(N const& value) -> bool;
+			[[nodiscard]] auto is_node(N const& value) -> bool{
+				return (nodes_.get()->find(value)!= nodes_.get()->end());
+			}
 			[[nodiscard]] auto empty() -> bool;
 			[[nodiscard]] auto is_connected(N const& src, N const& dst) -> bool;
 			[[nodiscard]] auto nodes() -> std::vector<N>;
@@ -87,7 +99,17 @@ namespace gdwg {
 			[[nodiscard]] auto operator==(graph const& other) -> bool;
 
 			// Extractor
-			friend auto operator<<(std::ostream& os, graph const& g) -> std::ostream&;
+			friend auto operator<<(std::ostream& os, graph const& g) -> std::ostream&{
+				for (auto it = g.nodes_.get()->begin(); it != g.nodes_.get()->end(); ++it) {
+				// for (auto const& [from, edges] : g.nodes_.get()) {
+					os << "( " << it->first;
+					for (auto const& [to, weight]: it->second){
+						os << "( " << to << " | " << weight << " )" << std::endl;
+					}
+					os << " )" << std::endl;
+				}
+				return os;
+			}
 
 			// // Iterator
 			// iterator();
@@ -103,12 +125,12 @@ namespace gdwg {
 			// auto operator==(iterator const& other) -> bool;
 
 		private:
-			struct value_type {
-				N from;
-				N to;
-				E weight;
-			};
-			std::unique_ptr<std::map<N, std::vector<value_type>>> nodes_;
+			// struct value_type {
+			// 	N from;
+			// 	N to;
+			// 	E weight;
+			// };
+			std::unique_ptr<std::map<N, std::vector<std::pair<N,E>>>> nodes_;
 	};
 
 } // namespace gdwg
