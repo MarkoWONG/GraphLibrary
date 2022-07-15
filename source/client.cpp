@@ -6,16 +6,37 @@
 #include <cassert>
 
 auto main() -> int {
-	auto v = std::vector<int>{1,2,5,69,96,100};
-	auto g = gdwg::graph<int, int>(v.begin(), v.end());
-	// g.print_key();
-	auto g2 = gdwg::graph<int, int>{123,3242,3565,695235,96,102340};
-	assert (g2.insert_node(39) == true);
-	assert (g2.insert_node(39) == false);
-	std::cout << g2;
-	g2.insert_edge(39,96,-23);
-	std::cout << g2;
 
+	struct value_type {
+		int from;
+		int to;
+		int weight;
+	};
+	using graph = gdwg::graph<int, int>;
+	auto const v = std::vector<value_type>{
+	{4, 1, -4},
+	{3, 2, 2},
+	{2, 4, 2},
+	{2, 1, 1},
+	{6, 2, 5},
+	{6, 3, 10},
+	{1, 5, -1},
+	{3, 6, -8},
+	{4, 5, 3},
+	{5, 2, 7},
+	};
+
+	auto g = graph{};
+	for (const auto& [from, to, weight] : v) {
+		g.insert_node(from);
+		g.insert_node(to);
+		g.insert_edge(from, to, weight);
+	}
+
+	g.insert_node(64);
+	std::cout << g;
+	assert (g.erase_node(4) == true);
+	std::cout << g;
 
 	// This will not compile straight away
 	// auto g = gdwg::graph<std::string, int>{};

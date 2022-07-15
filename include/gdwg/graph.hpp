@@ -63,8 +63,9 @@ namespace gdwg {
 
 			auto insert_edge(N const& src, N const& dst, E const& weight) -> bool{
 				if (is_node(src) && is_node(dst)) {
-					if (std::find(nodes_.get()->at(src).begin(), nodes_.get()->at(src).end(), std::make_pair(dst, weight)) == nodes_.get()->at(src).end()){
-						nodes_.get()->at(src).push_back(std::make_pair(dst, weight));
+					auto edge_vec = nodes_.get()->at(src);
+					if (std::find(edge_vec.begin(), edge_vec.end(), std::make_pair(dst, weight)) == edge_vec.end()){
+						edge_vec.push_back(std::make_pair(dst, weight));
 						return true;
 					}
 					return false;
@@ -72,13 +73,51 @@ namespace gdwg {
 				throw std::runtime_error("Cannot call gdwg::graph<N, E>::insert_edge when either src or dst node does not exist");
 				return false;
 			}
-			auto replace_node(N const& old_data, N const& new_data) -> bool;
-			auto merge_replace_node(N const& old_data, N const& new_data) -> void;
-			auto erase_node(N const& value) -> bool;
-			auto erase_edge(N const& src, N const& dst, E const& weight) -> bool;
+
+			auto replace_node(N const& old_data, N const& new_data) -> bool{
+				if(!is_node(old_data)){
+					throw std::runtime_error("Cannot call gdwg::graph<N, E>::replace_node on a node that doesn't exist");
+					return false;
+				}
+				if (is_node(new_data)){
+					return false;
+				}
+				auto node_handler = nodes_.get()->extract(old_data);
+				node_handler.key() = new_data;
+				nodes_.get()->insert(std::move(node_handler));
+				return true;
+			}
+
+			auto merge_replace_node(N const& old_data, N const& new_data) -> void{
+				if (!(is_node(old_data) && is_node(new_data))){
+					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+				}
+				//TODO
+			}
+			auto erase_node(N const& value) -> bool{
+				return(nodes_.get()->erase(value));
+			}
+
+			auto erase_edge(N const& src, N const& dst, E const& weight) -> bool{
+				if (!(is_node(src) && is_node(dst))){
+					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+					return false;
+				}
+				try{
+					auto edge_vec = nodes_.get()->at(src);
+					edge_vec.erase(std::remove(edge_vec.begin(), edge_vec.end(), std::make_pair(dst, weight)), edge_vec.end());
+					return true;
+				}
+				catch(...){
+					return false;
+				}
+
+			}
 			// auto erase_edge(iterator i) -> iterator;
 			// auto erase_edge(iterator i, iterator s) -> iterator;
-			auto clear() noexcept -> void;
+			auto clear() noexcept -> void{
+				nodes_.get()->clear();
+			}
 
 			// Accessors
 			[[nodiscard]] auto is_node(N const& value) -> bool{
@@ -100,14 +139,16 @@ namespace gdwg {
 
 			// Extractor
 			friend auto operator<<(std::ostream& os, graph const& g) -> std::ostream&{
+				os << "(";
 				for (auto it = g.nodes_.get()->begin(); it != g.nodes_.get()->end(); ++it) {
 				// for (auto const& [from, edges] : g.nodes_.get()) {
-					os << "( " << it->first;
+					os << it->first << " (" << std::endl;
 					for (auto const& [to, weight]: it->second){
-						os << "( " << to << " | " << weight << " )" << std::endl;
+						os << "  "  << to << " | " << weight << std::endl;
 					}
-					os << " )" << std::endl;
+					os << ")" << std::endl;
 				}
+				os << ")" << std::endl;
 				return os;
 			}
 
