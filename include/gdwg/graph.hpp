@@ -123,19 +123,62 @@ namespace gdwg {
 			[[nodiscard]] auto is_node(N const& value) -> bool{
 				return (nodes_.get()->find(value)!= nodes_.get()->end());
 			}
-			[[nodiscard]] auto empty() -> bool;
-			[[nodiscard]] auto is_connected(N const& src, N const& dst) -> bool;
-			[[nodiscard]] auto nodes() -> std::vector<N>;
-			[[nodiscard]] auto weights(N const& src, N const& dst) -> std::vector<E>;
+			[[nodiscard]] auto empty() -> bool{
+				return(nodes_.get()->empty());
+			}
+			[[nodiscard]] auto is_connected(N const& src, N const& dst) -> bool{
+				if (!(is_node(src) && is_node(dst))){
+					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+					return false;
+				}
+				auto edge_vec = nodes_.get()->at(src);
+				for (auto& [edg_dst, weight] : edge_vec){
+					if(edg_dst == dst){
+						return true;
+					}
+				}
+				return false;
+			}
+			[[nodiscard]] auto nodes() -> std::vector<N>{
+				std::vector<N> vec;
+				std::transform( nodes_.get()->begin(), nodes_.get()->end(), std::back_inserter(vec), first(nodes_.get()));
+				std::sort(vec.begin(), vec.end());
+				return vec;
+			}
+			[[nodiscard]] auto weights(N const& src, N const& dst) -> std::vector<E>{
+				if (!(is_node(src) && is_node(dst))){
+					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+				}
+				std::vector<E> vec;
+				auto edge_vec = nodes_.get()->at(src);
+				for (auto& [edg_dst, weight] : edge_vec){
+					if(edg_dst == dst){
+						vec.push_back(weight);
+					}
+				}
+				std::sort(vec.begin(), vec.end());
+				return vec;
+			}
 			// [[nodiscard]] auto find(N const& src, N const& dst, E const& weight) -> iterator;
-			[[nodiscard]] auto connections(N const& src) -> std::vector<N>;
+			[[nodiscard]] auto connections(N const& src) -> std::vector<N>{
+				if (!is_node(src)){
+					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+				}
+				std::vector<E> vec;
+				auto edge_vec = nodes_.get()->at(src);
+				std::transform(edge_vec.begin(), edge_vec.end(), std::back_inserter(vec), first(edge_vec));
+				std::sort(vec.begin(), vec.end());
+				return vec;
+			}
 
 			// Iterator Access
 			// [[nodiscard]] auto begin() const -> iterator;
 			// [[nodiscard]] auto end() const -> iterator;
 
 			// Comparisons
-			[[nodiscard]] auto operator==(graph const& other) -> bool;
+			[[nodiscard]] auto operator==(graph const& other) -> bool{
+				return (nodes_.get() == other.nodes_.get());
+			}
 
 			// Extractor
 			friend auto operator<<(std::ostream& os, graph const& g) -> std::ostream&{
