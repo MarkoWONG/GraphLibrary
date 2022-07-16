@@ -7,35 +7,38 @@
 
 auto main() -> int {
 
+	// struct value_type {
+	// 	int from;
+	// 	int to;
+	// 	int weight;
+	// };
+	// using graph = gdwg::graph<int, int>;
+	// auto const v = std::vector<value_type> {
+	// {4, 1, -4},
+	// {3, 2, 2},
+	// {2, 4, 2},
+	// {2, 1, 1}
+	// };
 	struct value_type {
-		int from;
-		int to;
+		std::string from;
+		std::string to;
 		int weight;
 	};
-	using graph = gdwg::graph<int, int>;
+	using graph = gdwg::graph<std::string, int>;
 	auto const v = std::vector<value_type>{
-	{4, 1, -4},
-	{3, 2, 2},
-	{2, 4, 2},
-	{2, 1, 1},
-	{6, 2, 5},
-	{6, 3, 10},
-	{1, 5, -1},
-	{3, 6, -8},
-	{4, 5, 3},
-	{5, 2, 7},
+	{ "B", "A", 3},
+	{ "B","C", 2},
+	{ "B","D", 4},
 	};
 
 	auto g = graph{};
 	for (const auto& [from, to, weight] : v) {
 		g.insert_node(from);
-		g.insert_node(to);
-		g.insert_edge(from, to, weight);
+		g.insert_node(to) ;
+		assert (g.insert_edge(from, to, weight) == true);
 	}
-
-	g.insert_node(64);
 	std::cout << g;
-	assert (g.erase_node(4) == true);
+	g.merge_replace_node("B", "A") ;
 	std::cout << g;
 
 	// This will not compile straight away

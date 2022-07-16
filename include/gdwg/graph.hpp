@@ -65,7 +65,7 @@ namespace gdwg {
 				if (is_node(src) && is_node(dst)) {
 					auto edge_vec = nodes_.get()->at(src);
 					if (std::find(edge_vec.begin(), edge_vec.end(), std::make_pair(dst, weight)) == edge_vec.end()){
-						edge_vec.push_back(std::make_pair(dst, weight));
+						nodes_.get()->at(src).push_back(std::make_pair(dst, weight));
 						return true;
 					}
 					return false;
@@ -92,7 +92,22 @@ namespace gdwg {
 				if (!(is_node(old_data) && is_node(new_data))){
 					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
 				}
-				//TODO
+				// For all outgoing edges
+				for (auto& [dst, weight] : nodes_.get()->at(old_data)){
+					nodes_.get()->at(new_data).push_back(std::make_pair(dst, weight));
+				}
+				// remove old node
+				nodes_.get()->erase(old_data);
+				// For all nodes replace outgoing edges with old_node
+				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
+					auto edge_vec = nodes_.get()->at(it->first);
+					std::transform(edge_vec.begin(), edge_vec.end(), nodes_.get()->at(it->first).begin(), [old_data, new_data](std::pair<N,E> &edge) {
+						if (edge.first == old_data){
+							return(std::make_pair(new_data, edge.second));
+						}
+						return edge;
+					});
+				}
 			}
 			auto erase_node(N const& value) -> bool{
 				return(nodes_.get()->erase(value));
@@ -131,8 +146,7 @@ namespace gdwg {
 					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
 					return false;
 				}
-				auto edge_vec = nodes_.get()->at(src);
-				for (auto& [edg_dst, weight] : edge_vec){
+				for (auto& [edg_dst, weight] : nodes_.get()->at(src)){
 					if(edg_dst == dst){
 						return true;
 					}
@@ -150,8 +164,7 @@ namespace gdwg {
 					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
 				}
 				std::vector<E> vec;
-				auto edge_vec = nodes_.get()->at(src);
-				for (auto& [edg_dst, weight] : edge_vec){
+				for (auto& [edg_dst, weight] : nodes_.get()->at(src)){
 					if(edg_dst == dst){
 						vec.push_back(weight);
 					}
@@ -166,7 +179,7 @@ namespace gdwg {
 				}
 				std::vector<E> vec;
 				auto edge_vec = nodes_.get()->at(src);
-				std::transform(edge_vec.begin(), edge_vec.end(), std::back_inserter(vec), first(edge_vec));
+				std::transform(edge_vec.begin(), edge_vec.end(), std::back_inserter(vec), first(nodes_.get()->at(src)));
 				std::sort(vec.begin(), vec.end());
 				return vec;
 			}
@@ -209,11 +222,6 @@ namespace gdwg {
 			// auto operator==(iterator const& other) -> bool;
 
 		private:
-			// struct value_type {
-			// 	N from;
-			// 	N to;
-			// 	E weight;
-			// };
 			std::unique_ptr<std::map<N, std::vector<std::pair<N,E>>>> nodes_;
 	};
 
