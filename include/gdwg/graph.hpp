@@ -81,9 +81,26 @@ namespace gdwg {
 				if (is_node(new_data)){
 					return false;
 				}
+				// Rename the old_data key to be the new_data
 				auto node_handler = nodes_.get()->extract(old_data);
 				node_handler.key() = new_data;
 				nodes_.get()->insert(std::move(node_handler));
+
+				// rename any other old_data to new_data in other exisiting edges
+				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
+					auto edge_set = nodes_.get()->at(it->first);
+					auto new_edge_set = std::multiset<std::pair<N,E>>();
+					for (auto& [dst,weight] : edge_set){
+						if (dst == old_data){
+							new_edge_set.insert(std::make_pair(new_data, weight));
+						}
+						else{
+							new_edge_set.insert(std::make_pair(dst, weight));
+						}
+					}
+					nodes_.get()->at(it->first) = new_edge_set;
+				}
+
 				return true;
 			}
 
@@ -100,31 +117,56 @@ namespace gdwg {
 				// For all nodes replace outgoing edges with old_node
 				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
 					auto edge_set = nodes_.get()->at(it->first);
+					auto new_edge_set = std::multiset<std::pair<N,E>>();
 					for (auto& [dst,weight] : edge_set){
 						if (dst == old_data){
-							edge_set.erase(std::make_pair(dst, weight));
-							edge_set.insert(std::make_pair(new_data, weight));
+							new_edge_set.insert(std::make_pair(new_data, weight));
+						}
+						else{
+							new_edge_set.insert(std::make_pair(dst, weight));
 						}
 					}
+					nodes_.get()->at(it->first) = new_edge_set;
 				}
 			}
 			auto erase_node(N const& value) -> bool{
-				return(nodes_.get()->erase(value));
+
+				auto value_removed = nodes_.get()->erase(value);
+				// For all nodes replace outgoing edges with old_node
+				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
+					auto edge_set = nodes_.get()->at(it->first);
+					auto new_edge_set = std::multiset<std::pair<N,E>>();
+					for (auto& [dst,weight] : edge_set){
+						if (dst == value){
+						}
+						else{
+							new_edge_set.insert(std::make_pair(dst, weight));
+						}
+					}
+					nodes_.get()->at(it->first) = new_edge_set;
+				}
+				return value_removed;
 			}
 
 			auto erase_edge(N const& src, N const& dst, E const& weight) -> bool{
 				if (!(is_node(src) && is_node(dst))){
-					throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+					throw std::runtime_error("Cannot call gdwg::graph<N, E>::erase_edge on src or dst if they don't exist in the graph");
 					return false;
 				}
-				try{
-					auto edge_set = nodes_.get()->at(src);
-					edge_set.erase(std::remove(edge_set.begin(), edge_set.end(), std::make_pair(dst, weight)), edge_set.end());
-					return true;
+				auto edge_removed = false;
+				auto edge_set = nodes_.get()->at(src);
+				auto new_edge_set = std::multiset<std::pair<N,E>>();
+				for (auto& [e_dst,e_weight] : edge_set){
+					if (e_dst == dst && e_weight == weight){
+						edge_removed = true;
+					}
+					else{
+						new_edge_set.insert(std::make_pair(e_dst, e_weight));
+					}
 				}
-				catch(...){
-					return false;
-				}
+				nodes_.get()->at(src) = new_edge_set;
+				return edge_removed;
+
 
 			}
 			// auto erase_edge(iterator i) -> iterator;
@@ -193,7 +235,7 @@ namespace gdwg {
 
 			// Extractor
 			friend auto operator<<(std::ostream& os, graph const& g) -> std::ostream&{
-				os << "(";
+				// os << "(";
 				for (auto it = g.nodes_.get()->begin(); it != g.nodes_.get()->end(); ++it) {
 				// for (auto const& [from, edges] : g.nodes_.get()) {
 					os << it->first << " (" << std::endl;
@@ -202,7 +244,7 @@ namespace gdwg {
 					}
 					os << ")" << std::endl;
 				}
-				os << ")" << std::endl;
+				// os << ")" << std::endl;
 				return os;
 			}
 

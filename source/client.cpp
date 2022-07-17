@@ -19,11 +19,26 @@ auto main() -> int {
 	// {2, 4, 2},
 	// {2, 1, 1}
 	// };
-	auto g1 = gdwg::graph<std::string, int>();
-	auto g2 = gdwg::graph<std::string, int>();
-	if(g1 == g2){
-		std::cout << "done";
-	};
+	auto g = gdwg::graph<int, int>();
+	g.insert_node(1);
+	g.insert_node(2);
+	g.insert_node(3);
+	g.insert_node(4);
+	g.insert_node(5);
+	g.insert_node(6);
+	g.insert_node(64);
+
+	g.insert_edge(4, 1, -4);
+	g.insert_edge(3, 2, 2);
+	g.insert_edge(2, 4, 2);
+	g.insert_edge(2, 1, 1);
+	g.insert_edge(6, 2, 5);
+	g.insert_edge(6, 3, 10);
+	g.insert_edge(1, 5, -1);
+	g.insert_edge(3, 6, -8);
+	g.insert_edge(4, 5, 3);
+	g.insert_edge(5, 2, 7);
+	std::cout << g;
 
 	// This will not compile straight away
 	// auto g = gdwg::graph<std::string, int>{};
