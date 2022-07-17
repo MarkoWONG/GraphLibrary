@@ -150,20 +150,44 @@ TEST_CASE("Accessor Unit Tests") {
 
 		g.insert_edge("hello", "are", 8);
 		g.insert_edge("hello", "are", 2);
-		g.insert_edge("how", "you?", 1);
+		g.insert_edge("hello", "you?", 1);
 		g.insert_edge("how", "hello", 4);
-		g.insert_edge("are", "you?", 3);
 
 		auto src_edges = g.connections("hello");
-		CHECK(src_edges == std::vector<std::string>{"are", "are", "how"});
+		CHECK(src_edges == std::vector<std::string>{"are", "are", "you?"});
+		CHECK_THROWS_AS(g.connections("C"), std::runtime_error);
+		CHECK_THROWS_WITH(g.connections("C"),"Cannot call gdwg::graph<N, E>::connections if src doesn't exist in the graph");
 	}
 }
 TEST_CASE("Modifier Unit Tests") {
 	SECTION("insert_node"){
-
+		auto g = gdwg::graph<std::string, int>{};
+		CHECK(g.insert_node("hello") == true);
+		CHECK(g.is_node("hello") == true);
+		auto vec1 = g.nodes();
+		CHECK(vec1.size() == 1);
+		CHECK(g.insert_node("hello") == false);
+		vec1 = g.nodes();
+		CHECK(vec1.size() == 1);
 	}
 	SECTION("insert_edge"){
+		auto g = gdwg::graph<std::string, int>{};
+		g.insert_node("hello");
+		g.insert_node("how");
+		g.insert_node("are");
+		g.insert_node("you?");
 
+		CHECK(g.insert_edge("hello", "are", 8) == true);
+		CHECK(g.insert_edge("hello", "are", 2) == true);
+		CHECK(g.insert_edge("hello", "you?", 1)== true);
+		CHECK(g.insert_edge("how", "hello", 4)== true);
+
+		CHECK(g.insert_edge("hello", "are", 8) == false);
+		CHECK(g.insert_edge("how", "hello", 4)== false);
+		CHECK_THROWS_AS(g.insert_edge("C", "how", 2), std::runtime_error);
+		CHECK_THROWS_WITH(g.insert_edge("C", "how",2),"Cannot call gdwg::graph<N, E>::insert_edge when either src or dst node does not exist");
+		CHECK_THROWS_AS(g.insert_edge("how", "C", 2), std::runtime_error);
+		CHECK_THROWS_WITH(g.insert_edge("how", "C",2),"Cannot call gdwg::graph<N, E>::insert_edge when either src or dst node does not exist");
 	}
 	SECTION("replace_node"){
 
@@ -184,7 +208,23 @@ TEST_CASE("Modifier Unit Tests") {
 
 TEST_CASE("Operator Unit Tests") {
 	SECTION("=="){
+		auto g1 = gdwg::graph<std::string, int>();
+		auto g2 = gdwg::graph<std::string, int>();
+		CHECK(g1 == g2);
 
+		auto g3 = gdwg::graph<int, int>{1,2,3,4,65,1234,-2};
+		auto g4 = gdwg::graph<int, int>{1234,-2,3,4,65,1,2};
+		CHECK(g3 == g4);
+
+		auto g5 = gdwg::graph<int, int>{1,2,3,4,65,1234,-2};
+		g5.insert_edge(1,2,90);
+		g5.insert_edge(2,1,91);
+		g5.insert_edge(2,2,92);
+		auto g6 = gdwg::graph<int, int>{1234,-2,3,4,65,1,2};
+		g6.insert_edge(1,2,90);
+		g6.insert_edge(2,1,91);
+		g6.insert_edge(2,2,92);
+		CHECK(g5 == g6);
 	}
 	SECTION("<<"){
 

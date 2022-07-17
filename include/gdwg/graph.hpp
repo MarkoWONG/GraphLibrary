@@ -53,13 +53,11 @@ namespace gdwg {
 
 			// Modifiers
 			auto insert_node(N const& value) -> bool{
-				if (!is_node(value)) {
-				// not found
-					nodes_.get()->insert({value, std::multiset <std::pair<N,E>>{}});
-					return true;
+				if (is_node(value)) {
+					return false;
 				}
-				// found
-				return false;
+				nodes_.get()->insert({value, std::multiset <std::pair<N,E>>{}});
+				return true;
 			}
 
 			auto insert_edge(N const& src, N const& dst, E const& weight) -> bool{
@@ -176,10 +174,11 @@ namespace gdwg {
 				if (!is_node(src)){
 					throw std::runtime_error("Cannot call gdwg::graph<N, E>::connections if src doesn't exist in the graph");
 				}
-				std::vector<N> vec;
 				auto edge_set = nodes_.get()->at(src);
-				// std::transform(edge_set.begin(), edge_set.end(), std::back_inserter(vec), first(nodes_.get()->at(src)));
-				// std::sort(vec.begin(), vec.end());
+				std::vector<N> vec;
+				for (auto& [edg_dst, weight] : nodes_.get()->at(src)){
+					vec.push_back(edg_dst);
+				}
 				return vec;
 			}
 
@@ -189,7 +188,7 @@ namespace gdwg {
 
 			// Comparisons
 			[[nodiscard]] auto operator==(graph const& other) const-> bool{
-				return (this->nodes_.get() == other.nodes_.get());
+				return (nodes_.get()->size() == other.nodes_.get()->size() && std::equal(nodes_.get()->begin(), nodes_.get()->end(),other.nodes_.get()->begin()));
 			}
 
 			// Extractor

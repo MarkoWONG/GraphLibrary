@@ -19,27 +19,11 @@ auto main() -> int {
 	// {2, 4, 2},
 	// {2, 1, 1}
 	// };
-	struct value_type {
-		std::string from;
-		std::string to;
-		int weight;
+	auto g1 = gdwg::graph<std::string, int>();
+	auto g2 = gdwg::graph<std::string, int>();
+	if(g1 == g2){
+		std::cout << "done";
 	};
-	using graph = gdwg::graph<std::string, int>;
-	auto const v = std::vector<value_type>{
-	{ "B", "A", 3},
-	{ "B","C", 2},
-	{ "B","D", 4},
-	};
-
-	auto g = graph{};
-	for (const auto& [from, to, weight] : v) {
-		g.insert_node(from);
-		g.insert_node(to) ;
-		assert (g.insert_edge(from, to, weight) == true);
-	}
-	std::cout << g;
-	g.merge_replace_node("B", "A") ;
-	std::cout << g;
 
 	// This will not compile straight away
 	// auto g = gdwg::graph<std::string, int>{};
