@@ -155,7 +155,7 @@ TEST_CASE("Accessor Unit Tests") {
 		g.insert_edge("how", "hello", 4);
 
 		auto src_edges = g.connections("hello");
-		CHECK(src_edges == std::vector<std::string>{"are", "are", "you?"});
+		CHECK(src_edges == std::vector<std::string>{"are", "you?"});
 		CHECK_THROWS_AS(g.connections("C"), std::runtime_error);
 		CHECK_THROWS_WITH(g.connections("C"),"Cannot call gdwg::graph<N, E>::connections if src doesn't exist in the graph");
 	}
@@ -222,6 +222,7 @@ TEST_CASE("Modifier Unit Tests") {
 		g.insert_node("B");
 		g.insert_node("C");
 		g.insert_node("D");
+		g.insert_edge("B", "B", -1);
 		g.insert_edge("A", "B", 1);
 		g.insert_edge("B", "A", 3);
 		g.insert_edge("B", "C", 2);
@@ -232,8 +233,8 @@ TEST_CASE("Modifier Unit Tests") {
 		CHECK(g.is_node("B") == false);
 		CHECK(g.is_node("A") == true);
 		auto edge_vec = g.connections("A");
-		CHECK(edge_vec == std::vector<std::string>{"A", "A", "C", "D"});
-		CHECK(g.weights("A", "A") == std::vector<int>{1,3});
+		CHECK(edge_vec == std::vector<std::string>{"A", "C", "D"});
+		CHECK(g.weights("A", "A") == std::vector<int>{-1,1,3});
 		CHECK(g.weights("A", "C") == std::vector<int>{2});
 		CHECK(g.weights("A", "D") == std::vector<int>{4});
 		CHECK(g.weights("D", "A") == std::vector<int>{4});

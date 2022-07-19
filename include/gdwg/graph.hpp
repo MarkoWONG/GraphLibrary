@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <memory>
 #include <iostream>
+#include <iterator>
+
 // This will not compile straight away
 namespace gdwg {
 	template<typename N, typename E>
@@ -217,11 +219,11 @@ namespace gdwg {
 					throw std::runtime_error("Cannot call gdwg::graph<N, E>::connections if src doesn't exist in the graph");
 				}
 				auto edge_set = nodes_.get()->at(src);
-				std::vector<N> vec;
+				std::set<N> uni_edge;
 				for (auto& [edg_dst, weight] : nodes_.get()->at(src)){
-					vec.push_back(edg_dst);
+					uni_edge.insert(edg_dst);
 				}
-				return vec;
+				return std::vector<N>(uni_edge.begin(), uni_edge.end());
 			}
 
 			// Iterator Access
@@ -248,7 +250,7 @@ namespace gdwg {
 				return os;
 			}
 
-			// // Iterator
+			// Iterator
 			// iterator();
 			// explicit iterator(unspecified);
 
@@ -264,6 +266,37 @@ namespace gdwg {
 		private:
 			std::unique_ptr<std::map<N, std::multiset<std::pair<N,E>>>> nodes_;
 	};
+
+	// template<typename N, typename E>
+	// class graph<N, E>::iterator {
+	// public:
+	// 	using value_type = graph<N, E>::value_type;
+	// 	using reference = value_type;
+	// 	using pointer = void;
+	// 	using difference_type = std::ptrdiff_t;
+	// 	using iterator_category = std::bidirectional_iterator_tag;
+
+	// 	// Iterator constructor
+	// 	iterator() = default;
+
+	// 	// Iterator source
+	// 	auto operator*() -> reference;
+
+	// 	// Iterator traversal
+	// 	auto operator++() -> iterator&;
+	// 	auto operator++(int) -> iterator;
+	// 	auto operator--() -> iterator&;
+	// 	auto operator--(int) -> iterator;
+
+	// 	// Iterator comparison
+	// 	auto operator==(iterator const& other) -> bool;
+
+	// 	// To allow graph to modify this
+	// 	friend class graph<N,E>
+	// private:
+	// 	explicit iterator(unspecified);
+// };
+
 
 } // namespace gdwg
 
