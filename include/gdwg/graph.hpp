@@ -12,22 +12,113 @@
 namespace gdwg {
 	template<typename N, typename E>
 	class graph{
+		class iter {
+			// using map_iter = typename std::map<N, std::set<std::pair<N,E>>>::iterator;
+
+			public:
+				// point to an edge
+				using value_type = std::pair<N,E>;
+				using reference = value_type;
+				using pointer = void;
+				using difference_type = std::ptrdiff_t;
+				using iterator_category = std::bidirectional_iterator_tag;
+
+				// Iterator constructor
+				// iter() = default;
+				iter(std::pair<N,E>* edge) : edge_ptr_{edge}{}
+
+				// Iterator source
+				auto operator*() -> reference{
+					// return *internal_iter_;
+					return *edge_ptr_;
+				}
+
+				auto operator->() const -> pointer {
+					return &(this->operator*());
+				}
+
+
+				// Iterator traversal
+				auto operator++() -> iter&{
+					++edge_ptr_;
+					return *this;
+				}
+				auto operator++(int) -> iter{
+					auto ret = *this;
+					++*this;
+					return ret;
+				}
+				auto operator--() -> iter&{
+					--edge_ptr_;
+					return *this;
+				}
+				auto operator--(int) -> iter{
+					auto ret = *this;
+					--*this;
+					return ret;
+				}
+
+				// Iterator comparison
+				auto operator==(const iter &) const -> bool = default;
+
+			private:
+				// map_iter internal_iter_;
+				// explicit iter(unspecified);
+				// explicit iter(std::map<N, std::set<std::pair<N,E>>>* node) : node_{node}{}
+				// std::map<N, std::set<std::pair<N,E>>>* node_;
+				std::pair<N,E>* edge_ptr_;
+
+				// To allow graph to modify this
+				friend class graph<N,E>;
+		};
 		public:
+			// Iterator
+			using iterator = iter;
+			using const_iterator = const iter;
+			using reverse_iterator = std::reverse_iterator<iterator>;
+			using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+			auto begin() noexcept -> iterator{
+				return iterator{&nodes_.get()->begin()->first[0]};
+			}
+			auto begin() const noexcept -> const_iterator{
+				return cbegin();
+			}
+			auto cbegin() const noexcept -> const_iterator{
+				return const_iterator{nodes_.get()};
+			}
+			auto end() noexcept -> iterator{
+				return iterator{nullptr};
+			}
+			auto end() const noexcept -> const_iterator{
+				return cend();
+			}
+			auto cend() const noexcept -> const_iterator{
+				return const_iterator{nullptr};
+			}
+
+			auto rbegin() noexcept -> reverse_iterator;
+			auto rbegin() const noexcept -> const_reverse_iterator;
+			auto crbegin() const noexcept -> const_reverse_iterator;
+			auto rend() noexcept -> reverse_iterator;
+			auto rend() const noexcept -> const_reverse_iterator;
+			auto crend() const noexcept -> const_reverse_iterator;
+
 			// Constructor
 			graph() noexcept {
-				nodes_ = std::make_unique<std::map<N, std::multiset <std::pair<N,E>>>>();
+				nodes_ = std::make_unique<std::map<N, std::set <std::pair<N,E>>>>();
 			}
 			graph(std::initializer_list<N> list){
-				nodes_ = std::make_unique<std::map<N, std::multiset <std::pair<N,E>>>>();
+				nodes_ = std::make_unique<std::map<N, std::set <std::pair<N,E>>>>();
 				for (auto itr = list.begin(); itr != list.end(); ++itr) {
-					nodes_.get()->insert({*itr, std::multiset <std::pair<N,E>>{}});
+					nodes_.get()->insert({*itr, std::set <std::pair<N,E>>{}});
 				}
 			}
 			template<typename InputIt>
 			graph(InputIt first, InputIt last){
-				nodes_ = std::make_unique<std::map<N, std::multiset <std::pair<N,E>>>>();
+				nodes_ = std::make_unique<std::map<N, std::set <std::pair<N,E>>>>();
 				for (auto itr = first; itr != last; ++itr) {
-					nodes_.get()->insert({*itr, std::multiset <std::pair<N,E>>{}});
+					nodes_.get()->insert({*itr, std::set <std::pair<N,E>>{}});
 				}
 
 
@@ -40,13 +131,13 @@ namespace gdwg {
 			}
 
 			graph(graph const& other) noexcept{
-				nodes_ = std::make_unique<std::map<N, std::multiset <std::pair<N,E>>>>();
+				nodes_ = std::make_unique<std::map<N, std::set <std::pair<N,E>>>>();
 				for (auto it = other.nodes_.get()->begin(); it != other.nodes_.get()->end(); ++it) {
 					nodes_.get()->insert({it->first, it->second});
 				}
 			}
 			auto operator=(graph const& other) -> graph&{
-				nodes_ = std::make_unique<std::map<N, std::multiset <std::pair<N,E>>>>();
+				nodes_ = std::make_unique<std::map<N, std::set <std::pair<N,E>>>>();
 				for (auto it = other.nodes_.get()->begin(); it != other.nodes_.get()->end(); ++it) {
 					nodes_.get()->insert({it->first, it->second});
 				}
@@ -58,7 +149,7 @@ namespace gdwg {
 				if (is_node(value)) {
 					return false;
 				}
-				nodes_.get()->insert({value, std::multiset <std::pair<N,E>>{}});
+				nodes_.get()->insert({value, std::set <std::pair<N,E>>{}});
 				return true;
 			}
 
@@ -91,7 +182,7 @@ namespace gdwg {
 				// rename any other old_data to new_data in other exisiting edges
 				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
 					auto edge_set = nodes_.get()->at(it->first);
-					auto new_edge_set = std::multiset<std::pair<N,E>>();
+					auto new_edge_set = std::set<std::pair<N,E>>();
 					for (auto& [dst,weight] : edge_set){
 						if (dst == old_data){
 							new_edge_set.insert(std::make_pair(new_data, weight));
@@ -119,7 +210,7 @@ namespace gdwg {
 				// For all nodes replace outgoing edges with old_node
 				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
 					auto edge_set = nodes_.get()->at(it->first);
-					auto new_edge_set = std::multiset<std::pair<N,E>>();
+					auto new_edge_set = std::set<std::pair<N,E>>();
 					for (auto& [dst,weight] : edge_set){
 						if (dst == old_data){
 							new_edge_set.insert(std::make_pair(new_data, weight));
@@ -137,7 +228,7 @@ namespace gdwg {
 				// For all nodes replace outgoing edges with old_node
 				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
 					auto edge_set = nodes_.get()->at(it->first);
-					auto new_edge_set = std::multiset<std::pair<N,E>>();
+					auto new_edge_set = std::set<std::pair<N,E>>();
 					for (auto& [dst,weight] : edge_set){
 						if (dst == value){
 						}
@@ -157,7 +248,7 @@ namespace gdwg {
 				}
 				auto edge_removed = false;
 				auto edge_set = nodes_.get()->at(src);
-				auto new_edge_set = std::multiset<std::pair<N,E>>();
+				auto new_edge_set = std::set<std::pair<N,E>>();
 				for (auto& [e_dst,e_weight] : edge_set){
 					if (e_dst == dst && e_weight == weight){
 						edge_removed = true;
@@ -250,7 +341,6 @@ namespace gdwg {
 				return os;
 			}
 
-			// Iterator
 			// iterator();
 			// explicit iterator(unspecified);
 
@@ -264,39 +354,8 @@ namespace gdwg {
 			// auto operator==(iterator const& other) -> bool;
 
 		private:
-			std::unique_ptr<std::map<N, std::multiset<std::pair<N,E>>>> nodes_;
+			std::unique_ptr<std::map<N, std::set<std::pair<N,E>>>> nodes_;
 	};
-
-	// template<typename N, typename E>
-	// class graph<N, E>::iterator {
-	// public:
-	// 	using value_type = graph<N, E>::value_type;
-	// 	using reference = value_type;
-	// 	using pointer = void;
-	// 	using difference_type = std::ptrdiff_t;
-	// 	using iterator_category = std::bidirectional_iterator_tag;
-
-	// 	// Iterator constructor
-	// 	iterator() = default;
-
-	// 	// Iterator source
-	// 	auto operator*() -> reference;
-
-	// 	// Iterator traversal
-	// 	auto operator++() -> iterator&;
-	// 	auto operator++(int) -> iterator;
-	// 	auto operator--() -> iterator&;
-	// 	auto operator--(int) -> iterator;
-
-	// 	// Iterator comparison
-	// 	auto operator==(iterator const& other) -> bool;
-
-	// 	// To allow graph to modify this
-	// 	friend class graph<N,E>
-	// private:
-	// 	explicit iterator(unspecified);
-// };
-
 
 } // namespace gdwg
 
