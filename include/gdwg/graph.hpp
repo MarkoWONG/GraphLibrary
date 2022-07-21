@@ -14,6 +14,7 @@ namespace gdwg {
 	class graph{
 		class iter {
 			// using map_iter = typename std::map<N, std::set<std::pair<N,E>>>::iterator;
+			using set_iter = typename std::set<std::pair<N,E>>::iterator;
 
 			public:
 				// point to an edge
@@ -24,13 +25,14 @@ namespace gdwg {
 				using iterator_category = std::bidirectional_iterator_tag;
 
 				// Iterator constructor
-				// iter() = default;
-				iter(std::pair<N,E>* edge) : edge_ptr_{edge}{}
+				iter() = default;
+				iter(set_iter s_iter = {}) : internal_iter_{s_iter} {}
+				// iter(std::pair<N,E>* edge) : edge_ptr_{edge}{}
 
 				// Iterator source
 				auto operator*() -> reference{
-					// return *internal_iter_;
-					return *edge_ptr_;
+					return *internal_iter_;
+					// return *edge_ptr_;
 				}
 
 				auto operator->() const -> pointer {
@@ -40,7 +42,8 @@ namespace gdwg {
 
 				// Iterator traversal
 				auto operator++() -> iter&{
-					++edge_ptr_;
+					// ++edge_ptr_;
+					++internal_iter_;
 					return *this;
 				}
 				auto operator++(int) -> iter{
@@ -49,7 +52,8 @@ namespace gdwg {
 					return ret;
 				}
 				auto operator--() -> iter&{
-					--edge_ptr_;
+					// --edge_ptr_;
+					--internal_iter_;
 					return *this;
 				}
 				auto operator--(int) -> iter{
@@ -63,10 +67,11 @@ namespace gdwg {
 
 			private:
 				// map_iter internal_iter_;
+				set_iter internal_iter_;
 				// explicit iter(unspecified);
 				// explicit iter(std::map<N, std::set<std::pair<N,E>>>* node) : node_{node}{}
 				// std::map<N, std::set<std::pair<N,E>>>* node_;
-				std::pair<N,E>* edge_ptr_;
+				// std::pair<N,E>* edge_ptr_;
 
 				// To allow graph to modify this
 				friend class graph<N,E>;
@@ -79,7 +84,17 @@ namespace gdwg {
 			using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 			auto begin() noexcept -> iterator{
-				return iterator{&nodes_.get()->begin()->first[0]};
+				// for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
+				// 	auto edge_set = nodes_.get()->at(it->first);
+				// 	// for (auto& [dst,weight] : edge_set){
+				// 	for (auto it2 = edge_set.begin(); it2 != edge_set.end(); ++it2) {
+				// 		std::cout << it2->first;
+				// 	}
+				// }
+				auto first_key = nodes_.get()->begin()->first;
+				auto first_edge = nodes_.get()->at(first_key).begin();
+				// std::cout << first_edge->first;
+				return iterator{first_edge};
 			}
 			auto begin() const noexcept -> const_iterator{
 				return cbegin();
@@ -88,13 +103,15 @@ namespace gdwg {
 				return const_iterator{nodes_.get()};
 			}
 			auto end() noexcept -> iterator{
-				return iterator{nullptr};
+				auto last_key = nodes_.get()->rbegin()->first;
+				auto last_edge = nodes_.get()->at(last_key).end();
+				return iterator{last_edge};
 			}
 			auto end() const noexcept -> const_iterator{
 				return cend();
 			}
 			auto cend() const noexcept -> const_iterator{
-				return const_iterator{nullptr};
+				// return const_iterator{nullptr};
 			}
 
 			auto rbegin() noexcept -> reverse_iterator;
