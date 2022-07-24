@@ -12,6 +12,16 @@
 namespace gdwg {
 	template<typename N, typename E>
 	class graph{
+		public:
+			struct iter_value_type {
+				N from;
+				N to;
+				E weight;
+				friend bool operator==(iter_value_type const& lhs, iter_value_type const& rhs) {
+					return (lhs.from == rhs.from && lhs.to == rhs.to && lhs.weight == rhs.weight);
+				}
+
+			};
 		class iter {
 			// outer_iterator = std::pair<N, std::set<std::pair<N,E>>
 			using outer_iterator = typename std::map<N, std::set<std::pair<N,E>>>::const_iterator;
@@ -20,7 +30,8 @@ namespace gdwg {
 
 			public:
 				// point to an edge std::pair<N,E>
-				using value_type = typename inner_iterator::value_type;
+				using value_type = graph<N, E>::iter_value_type;
+				// using value_type = typename inner_iterator::value_type;
 				using reference = value_type;
 				using pointer = void;
 				using difference_type = std::ptrdiff_t;
@@ -37,7 +48,11 @@ namespace gdwg {
 
 				// Iterator source
 				auto operator*() -> reference{
-					return *inner_;
+					// return *inner_;
+					iter_value_.from = outer_->first;
+					iter_value_.to = inner_->first;
+					iter_value_.weight = inner_->second;
+					return iter_value_;
 				}
 
 				auto operator->() const -> pointer {
@@ -81,7 +96,26 @@ namespace gdwg {
 					return ret;
 				}
 				auto operator--() -> iter&{
-					// Need to fix this
+					// if (inner_ != outer_->second.cbegin()) {
+					// 	return *this;
+					// }
+
+					// --outer_;
+					// if (outer_ == outer_end_){
+					// 	inner_ = inner_iterator();
+					// }
+					// else{
+					// 	// skips nodes with no edges
+					// 	while (outer_->second.empty()){
+					// 		--outer_;
+					// 		// if all nodes at the end have no edges
+					// 		if (outer_ == outer_end_){
+					// 			inner_ = inner_iterator();
+					// 			return *this;
+					// 		}
+					// 	}
+					// 	inner_ = outer_->second.cend();
+					// }
 					--inner_;
 					return *this;
 				}
@@ -101,7 +135,7 @@ namespace gdwg {
 				inner_iterator inner_;
 				outer_iterator outer_end_;
 				// explicit iter(unspecified);
-
+				iter_value_type iter_value_;
 				// To allow graph to modify this
 				friend class graph<N,E>;
 		};
