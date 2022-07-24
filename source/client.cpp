@@ -14,7 +14,7 @@ auto main() -> int {
 	g.insert_node(4);
 	g.insert_node(5);
 	g.insert_node(6);
-	g.insert_node(64);
+	// g.insert_node(64);
 
 	g.insert_edge(4, 1, -4);
 	g.insert_edge(3, 2, 2);

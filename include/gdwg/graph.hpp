@@ -13,26 +13,37 @@ namespace gdwg {
 	template<typename N, typename E>
 	class graph{
 		class iter {
-			// using map_iter = typename std::map<N, std::set<std::pair<N,E>>>::iterator;
-			using set_iter = typename std::set<std::pair<N,E>>::iterator;
+			// outer_iterator = std::pair<N, std::set<std::pair<N,E>>
+			using outer_iterator = typename std::map<N, std::set<std::pair<N,E>>>::const_iterator;
+			// inner = std::set<std::pair<N,E>>
+			using inner_iterator = typename std::set<std::pair<N,E>>::const_iterator;
 
 			public:
-				// point to an edge
-				using value_type = std::pair<N,E>;
+				// point to an edge std::pair<N,E>
+				using value_type = typename inner_iterator::value_type;
 				using reference = value_type;
 				using pointer = void;
 				using difference_type = std::ptrdiff_t;
 				using iterator_category = std::bidirectional_iterator_tag;
 
 				// Iterator constructor
-				iter() = default;
-				iter(set_iter s_iter = {}) : internal_iter_{s_iter} {}
-				// iter(std::pair<N,E>* edge) : edge_ptr_{edge}{}
+				// iter() = default;
+				// iter(map_iter m_iter = {}, set_iter s_iter = {}):
+				// 	outer_{m_iter}, inner_{s_iter} {};
+
+				// iter(std::unique_ptr<std::map<N, std::set<std::pair<N,E>>>>& pointee, outer_iterator outer, inner_iterator inner)
+				// 	: pointee_(&pointee)
+				// 	, outer_(outer)
+				// 	, inner_(inner) {}
+				iter(outer_iterator outer, inner_iterator inner, outer_iterator end)
+					: outer_(outer)
+					, inner_(inner)
+					, outer_end_(end) {}
+
 
 				// Iterator source
 				auto operator*() -> reference{
-					return *internal_iter_;
-					// return *edge_ptr_;
+					return *inner_;
 				}
 
 				auto operator->() const -> pointer {
@@ -42,18 +53,40 @@ namespace gdwg {
 
 				// Iterator traversal
 				auto operator++() -> iter&{
-					// ++edge_ptr_;
-					++internal_iter_;
+					if (inner_ != outer_->second.end()){
+						++inner_;
+						if (inner_ != outer_->second.end()) {
+							return *this;
+						}
+					}
+					++outer_;
+					if (outer_ == outer_end_){
+						inner_ = inner_iterator();
+					}
+					else{
+						inner_ = outer_->second.begin();
+					}
 					return *this;
 				}
+				// auto operator++() -> iter&{
+				// 	++inner_;
+				// 	if(inner_ == outer_->second.cend()){
+				// 		outer_ = std::find_if(++outer_, outer_end_, [](auto const & str) {
+				// 			return not str.empty();
+				// 		});
+				// 		inner_ = outer_ == outer_end_ ? inner_iterator{} : outer_->second.cbegin();
+				// 	}
+				// 	return *this;
+				// }
+
 				auto operator++(int) -> iter{
 					auto ret = *this;
 					++*this;
 					return ret;
 				}
 				auto operator--() -> iter&{
-					// --edge_ptr_;
-					--internal_iter_;
+					// Need to fix this
+					--inner_;
 					return *this;
 				}
 				auto operator--(int) -> iter{
@@ -63,15 +96,15 @@ namespace gdwg {
 				}
 
 				// Iterator comparison
-				auto operator==(const iter &) const -> bool = default;
+				// auto operator==(const iter &) const -> bool = default;
+				friend auto operator==(iter, iter) -> bool = default;
 
 			private:
-				// map_iter internal_iter_;
-				set_iter internal_iter_;
+				// std::map<N, std::set<std::pair<N,E>>>* pointee_;
+				outer_iterator outer_;
+				inner_iterator inner_;
+				outer_iterator outer_end_;
 				// explicit iter(unspecified);
-				// explicit iter(std::map<N, std::set<std::pair<N,E>>>* node) : node_{node}{}
-				// std::map<N, std::set<std::pair<N,E>>>* node_;
-				// std::pair<N,E>* edge_ptr_;
 
 				// To allow graph to modify this
 				friend class graph<N,E>;
@@ -83,34 +116,45 @@ namespace gdwg {
 			using reverse_iterator = std::reverse_iterator<iterator>;
 			using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-			auto begin() noexcept -> iterator{
-				// for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it) {
-				// 	auto edge_set = nodes_.get()->at(it->first);
-				// 	// for (auto& [dst,weight] : edge_set){
-				// 	for (auto it2 = edge_set.begin(); it2 != edge_set.end(); ++it2) {
-				// 		std::cout << it2->first;
-				// 	}
-				// }
-				auto first_key = nodes_.get()->begin()->first;
-				auto first_edge = nodes_.get()->at(first_key).begin();
-				// std::cout << first_edge->first;
-				return iterator{first_edge};
+			auto begin() -> iterator {
+				// default constructed inner_iterator is a NULL/EOF iterator
+				// return nodes_.get()->empty()
+				// ? iterator(nodes_.get(), nodes_.get()->begin(), {})
+				// : iterator(nodes_.get(), nodes_.get()->begin(), nodes_.get()->begin()->begin());
+
+				// return iterator(nodes_.get(), nodes_.get()->begin(), nodes_.get()->begin()->second.begin());
+				return iterator(nodes_.get()->begin(), nodes_.get()->begin()->second.begin(), nodes_.get()->cend());
 			}
+
+			// auto begin() noexcept -> iterator{
+			// 	auto first_key = nodes_.get()->begin()->first;
+			// 	auto first_edge = nodes_.get()->at(first_key).begin();
+			// 	auto last_edge = nodes_.get()->at(first_key).end();
+			// 	// std::cout << first_edge->first;
+			// 	return iterator{nodes_.get()->begin(), first_edge, last_edge};
+			// }
 			auto begin() const noexcept -> const_iterator{
 				return cbegin();
 			}
 			auto cbegin() const noexcept -> const_iterator{
 				return const_iterator{nodes_.get()};
 			}
-			auto end() noexcept -> iterator{
-				auto last_key = nodes_.get()->rbegin()->first;
-				auto last_edge = nodes_.get()->at(last_key).end();
-				return iterator{last_edge};
+			// auto end() noexcept -> iterator{
+			// 	auto last_key = nodes_.get()->rbegin()->first;
+			// 	auto last_edge = nodes_.get()->at(last_key).end();
+			// 	return iterator{nodes_.get()->end(), last_edge, last_edge};
+			// }
+			auto end() -> iterator {
+				// default constructed inner_iterator is a NULL/EOF iterator
+				// return iterator(nodes_.get(), nodes_.get()->end(), {});
+				return iterator(nodes_.get()->cend(), {}, nodes_.get()->cend());
 			}
+
 			auto end() const noexcept -> const_iterator{
 				return cend();
 			}
 			auto cend() const noexcept -> const_iterator{
+				return const_iterator(nodes_.get(), nodes_.get()->end(), {});
 				// return const_iterator{nullptr};
 			}
 
@@ -279,8 +323,10 @@ namespace gdwg {
 
 
 			}
+
 			// auto erase_edge(iterator i) -> iterator;
 			// auto erase_edge(iterator i, iterator s) -> iterator;
+
 			auto clear() noexcept -> void{
 				nodes_.get()->clear();
 			}
@@ -321,7 +367,9 @@ namespace gdwg {
 				}
 				return vec;
 			}
+
 			// [[nodiscard]] auto find(N const& src, N const& dst, E const& weight) -> iterator;
+
 			[[nodiscard]] auto connections(N const& src) -> std::vector<N>{
 				if (!is_node(src)){
 					throw std::runtime_error("Cannot call gdwg::graph<N, E>::connections if src doesn't exist in the graph");
@@ -333,10 +381,6 @@ namespace gdwg {
 				}
 				return std::vector<N>(uni_edge.begin(), uni_edge.end());
 			}
-
-			// Iterator Access
-			// [[nodiscard]] auto begin() const -> iterator;
-			// [[nodiscard]] auto end() const -> iterator;
 
 			// Comparisons
 			[[nodiscard]] auto operator==(graph const& other) const-> bool{
@@ -357,18 +401,6 @@ namespace gdwg {
 				// os << ")" << std::endl;
 				return os;
 			}
-
-			// iterator();
-			// explicit iterator(unspecified);
-
-			// // Iterator source
-			// auto operator*() -> reference;
-
-			// // Iterator traversal
-			// auto operator++() -> iterator&;
-
-			// // Iterator comparison
-			// auto operator==(iterator const& other) -> bool;
 
 		private:
 			std::unique_ptr<std::map<N, std::set<std::pair<N,E>>>> nodes_;
