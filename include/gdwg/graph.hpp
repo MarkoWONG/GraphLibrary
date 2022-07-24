@@ -28,13 +28,7 @@ namespace gdwg {
 
 				// Iterator constructor
 				// iter() = default;
-				// iter(map_iter m_iter = {}, set_iter s_iter = {}):
-				// 	outer_{m_iter}, inner_{s_iter} {};
 
-				// iter(std::unique_ptr<std::map<N, std::set<std::pair<N,E>>>>& pointee, outer_iterator outer, inner_iterator inner)
-				// 	: pointee_(&pointee)
-				// 	, outer_(outer)
-				// 	, inner_(inner) {}
 				iter(outer_iterator outer, inner_iterator inner, outer_iterator end)
 					: outer_(outer)
 					, inner_(inner)
@@ -52,32 +46,34 @@ namespace gdwg {
 
 
 				// Iterator traversal
+				// Precondition starting node has an edge
 				auto operator++() -> iter&{
-					if (inner_ != outer_->second.end()){
+					if (inner_ != outer_->second.cend()){
 						++inner_;
-						if (inner_ != outer_->second.end()) {
+						if (inner_ != outer_->second.cend()) {
 							return *this;
 						}
 					}
+
 					++outer_;
 					if (outer_ == outer_end_){
 						inner_ = inner_iterator();
 					}
 					else{
-						inner_ = outer_->second.begin();
+						// skips nodes with no edges
+						while (outer_->second.empty()){
+							++outer_;
+							// if all nodes at the end have no edges
+							if (outer_ == outer_end_){
+								inner_ = inner_iterator();
+								return *this;
+							}
+							std::cout << "empty \n";
+						}
+						inner_ = outer_->second.cbegin();
 					}
 					return *this;
 				}
-				// auto operator++() -> iter&{
-				// 	++inner_;
-				// 	if(inner_ == outer_->second.cend()){
-				// 		outer_ = std::find_if(++outer_, outer_end_, [](auto const & str) {
-				// 			return not str.empty();
-				// 		});
-				// 		inner_ = outer_ == outer_end_ ? inner_iterator{} : outer_->second.cbegin();
-				// 	}
-				// 	return *this;
-				// }
 
 				auto operator++(int) -> iter{
 					auto ret = *this;
@@ -117,36 +113,30 @@ namespace gdwg {
 			using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 			auto begin() -> iterator {
-				// default constructed inner_iterator is a NULL/EOF iterator
-				// return nodes_.get()->empty()
-				// ? iterator(nodes_.get(), nodes_.get()->begin(), {})
-				// : iterator(nodes_.get(), nodes_.get()->begin(), nodes_.get()->begin()->begin());
-
-				// return iterator(nodes_.get(), nodes_.get()->begin(), nodes_.get()->begin()->second.begin());
-				return iterator(nodes_.get()->begin(), nodes_.get()->begin()->second.begin(), nodes_.get()->cend());
+				// empty graph
+				if (nodes_.get()->empty()){
+					// default constructed inner_iterator is a NULL/EOF iterator
+					return iterator(nodes_.get()->begin(), {}, nodes_.get()->cend());
+				}
+				// first node with an edge
+				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it){
+					if (!it->second.empty()){
+						return iterator(it, it->second.begin(), nodes_.get()->cend());
+					}
+				}
+				// all nodes had no edge
+				return iterator(nodes_.get()->cend(), {}, nodes_.get()->cend());
 			}
 
-			// auto begin() noexcept -> iterator{
-			// 	auto first_key = nodes_.get()->begin()->first;
-			// 	auto first_edge = nodes_.get()->at(first_key).begin();
-			// 	auto last_edge = nodes_.get()->at(first_key).end();
-			// 	// std::cout << first_edge->first;
-			// 	return iterator{nodes_.get()->begin(), first_edge, last_edge};
-			// }
 			auto begin() const noexcept -> const_iterator{
 				return cbegin();
 			}
 			auto cbegin() const noexcept -> const_iterator{
 				return const_iterator{nodes_.get()};
 			}
-			// auto end() noexcept -> iterator{
-			// 	auto last_key = nodes_.get()->rbegin()->first;
-			// 	auto last_edge = nodes_.get()->at(last_key).end();
-			// 	return iterator{nodes_.get()->end(), last_edge, last_edge};
-			// }
+
 			auto end() -> iterator {
 				// default constructed inner_iterator is a NULL/EOF iterator
-				// return iterator(nodes_.get(), nodes_.get()->end(), {});
 				return iterator(nodes_.get()->cend(), {}, nodes_.get()->cend());
 			}
 

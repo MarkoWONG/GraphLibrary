@@ -346,4 +346,20 @@ TEST_CASE("Operator Unit Tests") {
 	}
 }
 TEST_CASE("Iterator Unit Tests") {
+	SECTION("empty Graph"){
+	}
+	SECTION("A full (every node has an edge) Graph"){
+	}
+	SECTION("nodes with no edge Graph"){
+	}
+	SECTION("starting nodes has no edge Graph"){
+	}
+	SECTION("middle nodes has no edge Graph"){
+	}
+	SECTION("ending nodes has no edge Graph"){
+	}
+	SECTION("starting & ending nodes has edges Graph"){
+	}
+
+
 }
