@@ -32,13 +32,12 @@ namespace gdwg {
 				using iterator_category = std::bidirectional_iterator_tag;
 
 				// Iterator constructor
-				// iter() = default;
+				iterator() = default;
 
 				iterator(outer_iterator outer, inner_iterator inner, outer_iterator end)
 					: outer_(outer)
 					, inner_(inner)
 					, outer_end_(end) {}
-
 
 				// Iterator source
 				auto operator*() -> reference{
@@ -101,15 +100,14 @@ namespace gdwg {
 				}
 
 				// Iterator comparison
-				// auto operator==(const iterator &) const -> bool = default;
-				friend auto operator==(iterator, iterator) -> bool = default;
+				auto operator==(const iterator &) const -> bool = default;
+				// friend auto operator==(iterator, iterator) -> bool = default;
 
 			private:
-				// std::map<N, std::set<std::pair<N,E>>>* pointee_;
 				outer_iterator outer_;
 				inner_iterator inner_;
 				outer_iterator outer_end_;
-				// explicit iterator(unspecified);
+
 				// To allow graph to modify this
 				friend class graph<N,E>;
 		};
