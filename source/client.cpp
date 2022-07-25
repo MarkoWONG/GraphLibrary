@@ -58,9 +58,9 @@ auto main() -> int {
 	// 	std::cout << to << " (weight " << weight << ")\n";
 	// }
 
-	// for (auto it = g.end(); it != g.begin(); --it) {
-    //     if (it != g.end()) {
-    //         std::cout << (*it).first << " ";
-    //     }
-    // }
+	for (auto it = g.end(); it != g.begin(); --it) {
+        if (it != g.end()) {
+			std::cout << (*it).from << " -> " << (*it).to << " (weight " << (*it).weight << ")\n";
+        }
+    }
 }

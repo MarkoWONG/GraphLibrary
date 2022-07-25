@@ -13,25 +13,19 @@ namespace gdwg {
 	template<typename N, typename E>
 	class graph{
 		public:
-			struct iter_value_type {
+			struct value_type {
 				N from;
 				N to;
 				E weight;
-				friend bool operator==(iter_value_type const& lhs, iter_value_type const& rhs) {
-					return (lhs.from == rhs.from && lhs.to == rhs.to && lhs.weight == rhs.weight);
-				}
-
 			};
-		class iter {
+		class iterator {
 			// outer_iterator = std::pair<N, std::set<std::pair<N,E>>
 			using outer_iterator = typename std::map<N, std::set<std::pair<N,E>>>::const_iterator;
 			// inner = std::set<std::pair<N,E>>
 			using inner_iterator = typename std::set<std::pair<N,E>>::const_iterator;
 
 			public:
-				// point to an edge std::pair<N,E>
-				using value_type = graph<N, E>::iter_value_type;
-				// using value_type = typename inner_iterator::value_type;
+				using value_type = graph<N, E>::value_type;
 				using reference = value_type;
 				using pointer = void;
 				using difference_type = std::ptrdiff_t;
@@ -40,7 +34,7 @@ namespace gdwg {
 				// Iterator constructor
 				// iter() = default;
 
-				iter(outer_iterator outer, inner_iterator inner, outer_iterator end)
+				iterator(outer_iterator outer, inner_iterator inner, outer_iterator end)
 					: outer_(outer)
 					, inner_(inner)
 					, outer_end_(end) {}
@@ -48,11 +42,7 @@ namespace gdwg {
 
 				// Iterator source
 				auto operator*() -> reference{
-					// return *inner_;
-					iter_value_.from = outer_->first;
-					iter_value_.to = inner_->first;
-					iter_value_.weight = inner_->second;
-					return iter_value_;
+					return reference{outer_->first, inner_->first, inner_->second};
 				}
 
 				auto operator->() const -> pointer {
@@ -62,7 +52,7 @@ namespace gdwg {
 
 				// Iterator traversal
 				// Precondition starting node has an edge
-				auto operator++() -> iter&{
+				auto operator++() -> iterator&{
 					if (inner_ != outer_->second.cend()){
 						++inner_;
 						if (inner_ != outer_->second.cend()) {
@@ -90,59 +80,43 @@ namespace gdwg {
 					return *this;
 				}
 
-				auto operator++(int) -> iter{
+				auto operator++(int) -> iterator{
 					auto ret = *this;
 					++*this;
 					return ret;
 				}
-				auto operator--() -> iter&{
-					// if (inner_ != outer_->second.cbegin()) {
-					// 	return *this;
-					// }
-
-					// --outer_;
-					// if (outer_ == outer_end_){
-					// 	inner_ = inner_iterator();
-					// }
-					// else{
-					// 	// skips nodes with no edges
-					// 	while (outer_->second.empty()){
-					// 		--outer_;
-					// 		// if all nodes at the end have no edges
-					// 		if (outer_ == outer_end_){
-					// 			inner_ = inner_iterator();
-					// 			return *this;
-					// 		}
-					// 	}
-					// 	inner_ = outer_->second.cend();
-					// }
+				auto operator--() -> iterator&{
+					// skips nodes with no edges
+					while (outer_ == outer_end_ || inner_ == outer_->second.cbegin()){
+						--outer_;
+						inner_ = outer_->second.cend();
+					}
 					--inner_;
 					return *this;
 				}
-				auto operator--(int) -> iter{
+				auto operator--(int) -> iterator{
 					auto ret = *this;
 					--*this;
 					return ret;
 				}
 
 				// Iterator comparison
-				// auto operator==(const iter &) const -> bool = default;
-				friend auto operator==(iter, iter) -> bool = default;
+				// auto operator==(const iterator &) const -> bool = default;
+				friend auto operator==(iterator, iterator) -> bool = default;
 
 			private:
 				// std::map<N, std::set<std::pair<N,E>>>* pointee_;
 				outer_iterator outer_;
 				inner_iterator inner_;
 				outer_iterator outer_end_;
-				// explicit iter(unspecified);
-				iter_value_type iter_value_;
+				// explicit iterator(unspecified);
 				// To allow graph to modify this
 				friend class graph<N,E>;
 		};
 		public:
 			// Iterator
-			using iterator = iter;
-			using const_iterator = const iter;
+			using iterator = graph<N, E>::iterator;
+			using const_iterator = const graph<N, E>::iterator;
 			using reverse_iterator = std::reverse_iterator<iterator>;
 			using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -166,7 +140,19 @@ namespace gdwg {
 				return cbegin();
 			}
 			auto cbegin() const noexcept -> const_iterator{
-				return const_iterator{nodes_.get()};
+				// empty graph
+				if (nodes_.get()->empty()){
+					// default constructed inner_iterator is a NULL/EOF iterator
+					return const_iterator(nodes_.get()->begin(), {}, nodes_.get()->cend());
+				}
+				// first node with an edge
+				for (auto it = nodes_.get()->begin(); it != nodes_.get()->end(); ++it){
+					if (!it->second.empty()){
+						return const_iterator(it, it->second.begin(), nodes_.get()->cend());
+					}
+				}
+				// all nodes had no edge
+				return const_iterator(nodes_.get()->cend(), {}, nodes_.get()->cend());
 			}
 
 			auto end() -> iterator {
