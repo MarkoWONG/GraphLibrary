@@ -29,7 +29,10 @@ auto main() -> int {
 	g.insert_edge(3, 6, -8);
 	g.insert_edge(4, 5, 3);
 	g.insert_edge(5, 2, 7);
-	std::cout << g;
+	// std::cout << g;
+	// g.erase_edge(g.begin());
+	auto iter = g.find(5,2,7);
+	std::cout << (*iter).from << " -> " << (*iter).to << " (weight " << (*iter).weight << ")\n";
 
 
 	// This will not compile straight away
@@ -54,13 +57,10 @@ auto main() -> int {
 	for (auto const& [from, to, weight] : g) {
 		std::cout << from << " -> " << to << " (weight " << weight << ")\n";
 	}
-	// for (auto const& [to, weight] : g){
-	// 	std::cout << to << " (weight " << weight << ")\n";
-	// }
 
-	for (auto it = g.end(); it != g.begin(); --it) {
-        if (it != g.end()) {
-			std::cout << (*it).from << " -> " << (*it).to << " (weight " << (*it).weight << ")\n";
-        }
-    }
+	// for (auto it = g.end(); it != g.begin(); --it) {
+    //     if (it != g.end()) {
+	// 		std::cout << (*it).from << " -> " << (*it).to << " (weight " << (*it).weight << ")\n";
+    //     }
+    // }
 }

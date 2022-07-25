@@ -332,8 +332,12 @@ namespace gdwg {
 
 			}
 
-			// auto erase_edge(iterator i) -> iterator;
-			// auto erase_edge(iterator i, iterator s) -> iterator;
+			// auto erase_edge(iterator i) -> iterator{
+			// 	return nodes_.get()->erase(i);
+			// }
+			// auto erase_edge(iterator i, iterator s) -> iterator{
+			// 	return nodes_.get()->at(i.from).erase(i,s);
+			// }
 
 			auto clear() noexcept -> void{
 				nodes_.get()->clear();
@@ -376,7 +380,10 @@ namespace gdwg {
 				return vec;
 			}
 
-			// [[nodiscard]] auto find(N const& src, N const& dst, E const& weight) -> iterator;
+			[[nodiscard]] auto find(N const& src, N const& dst, E const& weight) -> iterator{
+				auto outer = nodes_.get()->find(src);
+				return iterator(outer, outer->second.find(std::make_pair(dst,weight)), nodes_.get()->cend());
+			}
 
 			[[nodiscard]] auto connections(N const& src) -> std::vector<N>{
 				if (!is_node(src)){
