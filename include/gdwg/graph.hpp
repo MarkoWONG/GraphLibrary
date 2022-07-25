@@ -34,7 +34,7 @@ namespace gdwg {
 				// Iterator constructor
 				iterator() = default;
 
-				iterator(outer_iterator outer, inner_iterator inner, outer_iterator end)
+				explicit iterator(outer_iterator outer, inner_iterator inner, outer_iterator end)
 					: outer_(outer)
 					, inner_(inner)
 					, outer_end_(end) {}
@@ -101,7 +101,6 @@ namespace gdwg {
 
 				// Iterator comparison
 				auto operator==(const iterator &) const -> bool = default;
-				// friend auto operator==(iterator, iterator) -> bool = default;
 
 			private:
 				outer_iterator outer_;
@@ -163,7 +162,6 @@ namespace gdwg {
 			}
 			auto cend() const noexcept -> const_iterator{
 				return const_iterator(nodes_.get(), nodes_.get()->end(), {});
-				// return const_iterator{nullptr};
 			}
 
 			// Constructor
@@ -325,12 +323,24 @@ namespace gdwg {
 
 			}
 
-			// auto erase_edge(iterator i) -> iterator{
-			// 	return nodes_.get()->erase(i);
-			// }
-			// auto erase_edge(iterator i, iterator s) -> iterator{
-			// 	return nodes_.get()->at(i.from).erase(i,s);
-			// }
+			auto erase_edge(iterator i) -> iterator{
+				if (i == end()){
+					return end();
+				}
+				auto next = ++i;
+				// TODO
+				// nodes_.get()->erase(i);
+				return next;
+			}
+			auto erase_edge(iterator i, iterator s) -> iterator{
+				if (i == end() || s == end()){
+					return end();
+				}
+				auto next = ++s;
+				// TODO
+				// nodes_.get()->erase(i,s);
+				return next;
+			}
 
 			auto clear() noexcept -> void{
 				nodes_.get()->clear();
@@ -375,6 +385,9 @@ namespace gdwg {
 
 			[[nodiscard]] auto find(N const& src, N const& dst, E const& weight) -> iterator{
 				auto outer = nodes_.get()->find(src);
+				if (outer ==  nodes_.get()->end()){
+					return end();
+				}
 				auto inner = outer->second.find(std::make_pair(dst,weight));
 				if (inner != outer->second.end()){
 					return iterator(outer, inner, nodes_.get()->cend());

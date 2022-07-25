@@ -142,6 +142,26 @@ TEST_CASE("Accessor Unit Tests") {
 		CHECK_THROWS_AS(g.weights("are", "C"), std::runtime_error);
 		CHECK_THROWS_WITH(g.weights("are", "C"), "Cannot call gdwg::graph<N, E>::weights if src or dst node don't exist in the graph");
 	}
+	SECTION("find"){
+		auto g = gdwg::graph<std::string, int>{};
+		g.insert_node("hello");
+		g.insert_node("how");
+		g.insert_node("are");
+
+		g.insert_edge("hello", "how", 5);
+		g.insert_edge("hello", "are", 8);
+		g.insert_edge("hello", "are", 2);
+		auto it = g.find("hello", "how", 5);
+		CHECK((*it).from == "hello");
+		CHECK((*it).to == "how");
+		CHECK((*it).weight == 5);
+
+		auto it2 = g.find("hello", "how", 3);
+		CHECK(it2 == g.end());
+
+		auto it3 = g.find("ASFD", "how", 3);
+		CHECK(it3 == g.end());
+	}
 	SECTION("connections"){
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("hello");
@@ -265,7 +285,7 @@ TEST_CASE("Modifier Unit Tests") {
 
 		CHECK(g.erase_node("B") == false);
 	}
-	SECTION("erase_edge"){
+	SECTION("erase_edge -> bool"){
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("A");
 		g.insert_node("B");
@@ -285,7 +305,47 @@ TEST_CASE("Modifier Unit Tests") {
 		CHECK_THROWS_WITH(g.erase_edge("C", "how",4),"Cannot call gdwg::graph<N, E>::erase_edge on src or dst if they don't exist in the graph");
 		CHECK_THROWS_AS(g.erase_edge("how", "C",4), std::runtime_error);
 		CHECK_THROWS_WITH(g.erase_edge("how", "C",4),"Cannot call gdwg::graph<N, E>::erase_edge on src or dst if they don't exist in the graph");
+	}
+	SECTION("erase_edge(single) -> iterator"){
+		auto g = gdwg::graph<std::string, int>{};
+		g.insert_node("A");
+		g.insert_node("B");
+		g.insert_node("C");
+		g.insert_node("D");
+		g.insert_edge("B", "D", 4);
+		g.insert_edge("D", "B", 4);
+		g.insert_edge("D", "B", 5);
+		g.insert_edge("D", "A", 5);
 
+
+		auto it = g.erase_edge(g.end());
+		CHECK(it == g.end());
+
+		auto original_begin = g.begin();
+		auto next_val = original_begin;
+		++next_val;
+		auto it2 = g.erase_edge(original_begin);
+		CHECK(it2 == next_val);
+		CHECK(g.begin() == next_val);
+	}
+	SECTION("erase_edge(range) -> iterator"){
+		auto g = gdwg::graph<std::string, int>{};
+		g.insert_node("A");
+		g.insert_node("B");
+		g.insert_node("C");
+		g.insert_node("D");
+		g.insert_edge("B", "D", 4);
+		g.insert_edge("D", "B", 4);
+		g.insert_edge("D", "B", 5);
+		g.insert_edge("D", "A", 5);
+
+
+		auto it = g.erase_edge(g.end(), g.end());
+		CHECK(it == g.end());
+
+		auto it2 = g.erase_edge(g.begin(), g.end());
+		CHECK(it2 == g.end());
+		CHECK(g.empty());
 	}
 	SECTION("clear"){
 		auto g = gdwg::graph<std::string, int>{};
@@ -347,19 +407,256 @@ TEST_CASE("Operator Unit Tests") {
 }
 TEST_CASE("Iterator Unit Tests") {
 	SECTION("empty Graph"){
+		auto g = gdwg::graph<int, int>();
+		auto it = g.begin();
+		CHECK(it == g.end());
 	}
 	SECTION("A full (every node has an edge) Graph"){
+		auto g = gdwg::graph<int, int>();
+		g.insert_node(1);
+		g.insert_node(2);
+		g.insert_node(3);
+
+		g.insert_edge(1, 1, -1);
+		g.insert_edge(1, 2, 2);
+		g.insert_edge(3, 2, 2);
+		g.insert_edge(3, 3, -8);
+
+		g.insert_edge(2, 3, 2);
+		g.insert_edge(2, 1, 1);
+		auto it = g.begin();
+		CHECK((*it).from == 1);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == -1);
+		++it;
+
+		CHECK((*it).from == 1);
+		CHECK((*it).to == 2);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == 1);
+		++it;
+
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK((*it).from == 3);
+		CHECK((*it).to == 2);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK((*it).from == 3);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == -8);
+		++it;
+
+		CHECK(it == g.end());
 	}
 	SECTION("nodes with no edge Graph"){
+		auto g = gdwg::graph<int, int>();
+		g.insert_node(1);
+		g.insert_node(2);
+		g.insert_node(3);
+
+		auto it = g.begin();
+		CHECK(it == g.end());
 	}
 	SECTION("starting nodes has no edge Graph"){
+		auto g = gdwg::graph<int, int>();
+		g.insert_node(1);
+		g.insert_node(2);
+		g.insert_node(3);
+
+		g.insert_edge(3, 2, 2);
+		g.insert_edge(3, 3, -8);
+
+		g.insert_edge(2, 3, 2);
+		g.insert_edge(2, 1, 1);
+		auto it = g.begin();
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == 1);
+		++it;
+
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK((*it).from == 3);
+		CHECK((*it).to == 2);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK((*it).from == 3);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == -8);
+		++it;
+
+		CHECK(it == g.end());
 	}
 	SECTION("middle nodes has no edge Graph"){
+		auto g = gdwg::graph<int, int>();
+		g.insert_node(1);
+		g.insert_node(2);
+		g.insert_node(3);
+
+		g.insert_edge(1, 1, -1);
+		g.insert_edge(1, 2, 2);
+		g.insert_edge(3, 2, 2);
+		g.insert_edge(3, 3, -8);
+
+		auto it = g.begin();
+		CHECK((*it).from == 1);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == -1);
+		++it;
+
+		CHECK((*it).from == 1);
+		CHECK((*it).to == 2);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK((*it).from == 3);
+		CHECK((*it).to == 2);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK((*it).from == 3);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == -8);
+		++it;
+
+		CHECK(it == g.end());
 	}
 	SECTION("ending nodes has no edge Graph"){
+		auto g = gdwg::graph<int, int>();
+		g.insert_node(1);
+		g.insert_node(2);
+		g.insert_node(3);
+
+		g.insert_edge(1, 1, -1);
+		g.insert_edge(1, 2, 2);
+
+		g.insert_edge(2, 3, 2);
+		g.insert_edge(2, 1, 1);
+		auto it = g.begin();
+		CHECK((*it).from == 1);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == -1);
+		++it;
+
+		CHECK((*it).from == 1);
+		CHECK((*it).to == 2);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == 1);
+		++it;
+
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK(it == g.end());
 	}
 	SECTION("starting & ending nodes has edges Graph"){
+		auto g = gdwg::graph<int, int>();
+		g.insert_node(1);
+		g.insert_node(2);
+		g.insert_node(3);
+
+		g.insert_edge(2, 3, 2);
+		g.insert_edge(2, 1, 1);
+		auto it = g.begin();
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == 1);
+		++it;
+
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == 2);
+		++it;
+
+		CHECK(it == g.end());
 	}
 
+	SECTION("operator--"){
+		auto g = gdwg::graph<int, int>();
+		g.insert_node(1);
+		g.insert_node(2);
+		g.insert_node(3);
 
+		g.insert_edge(1, 1, -1);
+		g.insert_edge(1, 2, 2);
+		g.insert_edge(3, 2, 2);
+		g.insert_edge(3, 3, -8);
+
+		g.insert_edge(2, 3, 2);
+		g.insert_edge(2, 1, 1);
+		auto it = g.end();
+		--it;
+
+		CHECK((*it).from == 3);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == -8);
+		--it;
+
+		CHECK((*it).from == 3);
+		CHECK((*it).to == 2);
+		CHECK((*it).weight == 2);
+		--it;
+
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 3);
+		CHECK((*it).weight == 2);
+		--it;
+
+		CHECK((*it).from == 2);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == 1);
+		--it;
+
+		CHECK((*it).from == 1);
+		CHECK((*it).to == 2);
+		CHECK((*it).weight == 2);
+		--it;
+
+		CHECK((*it).from == 1);
+		CHECK((*it).to == 1);
+		CHECK((*it).weight == -1);
+
+		CHECK(it == g.begin());
+	}
+
+	SECTION("operator=="){
+		auto g = gdwg::graph<int, int>();
+		g.insert_node(1);
+		g.insert_node(2);
+		g.insert_node(3);
+
+		g.insert_edge(1, 1, -1);
+		g.insert_edge(1, 2, 2);
+		g.insert_edge(3, 2, 2);
+		g.insert_edge(3, 3, -8);
+
+		g.insert_edge(2, 3, 2);
+		g.insert_edge(2, 1, 1);
+		auto it = g.begin();
+		auto it2 = g.begin();
+		CHECK(it == it2);
+		++it;
+		CHECK(it != it2);
+		++it2;
+		CHECK(it == it2);
+	}
 }
