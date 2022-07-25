@@ -166,13 +166,6 @@ namespace gdwg {
 				// return const_iterator{nullptr};
 			}
 
-			auto rbegin() noexcept -> reverse_iterator;
-			auto rbegin() const noexcept -> const_reverse_iterator;
-			auto crbegin() const noexcept -> const_reverse_iterator;
-			auto rend() noexcept -> reverse_iterator;
-			auto rend() const noexcept -> const_reverse_iterator;
-			auto crend() const noexcept -> const_reverse_iterator;
-
 			// Constructor
 			graph() noexcept {
 				nodes_ = std::make_unique<std::map<N, std::set <std::pair<N,E>>>>();
@@ -382,7 +375,11 @@ namespace gdwg {
 
 			[[nodiscard]] auto find(N const& src, N const& dst, E const& weight) -> iterator{
 				auto outer = nodes_.get()->find(src);
-				return iterator(outer, outer->second.find(std::make_pair(dst,weight)), nodes_.get()->cend());
+				auto inner = outer->second.find(std::make_pair(dst,weight));
+				if (inner != outer->second.end()){
+					return iterator(outer, inner, nodes_.get()->cend());
+				}
+				return end();
 			}
 
 			[[nodiscard]] auto connections(N const& src) -> std::vector<N>{

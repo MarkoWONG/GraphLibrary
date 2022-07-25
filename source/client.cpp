@@ -31,8 +31,10 @@ auto main() -> int {
 	g.insert_edge(5, 2, 7);
 	// std::cout << g;
 	// g.erase_edge(g.begin());
-	auto iter = g.find(5,2,7);
-	std::cout << (*iter).from << " -> " << (*iter).to << " (weight " << (*iter).weight << ")\n";
+	auto iter = g.find(5,2,8);
+	if (iter != g.end()){
+		std::cout << (*iter).from << " -> " << (*iter).to << " (weight " << (*iter).weight << ")\n";
+	}
 
 
 	// This will not compile straight away
