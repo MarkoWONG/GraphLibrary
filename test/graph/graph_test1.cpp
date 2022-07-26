@@ -1,19 +1,19 @@
 #include "gdwg/graph.hpp"
 
 #include <catch2/catch.hpp>
-#include <vector>
 #include <list>
 #include <sstream>
+#include <vector>
+/*
+    Testing Rationale & Approach
+    The test will use the method of black box testing, as part of the purpose of object oritentied
+    programming is to have abstraction. Since this class follows this we only will test using the
+    implemented interface. The test type used in this test is unit testing. By doing this we can
+    ensure each interface method/functions are worked as per spec.
+*/
 
-TEST_CASE("basic test") {
-	// This will not compile straight away
-	auto g = gdwg::graph<int, std::string>{};
-	auto n = 5;
-	g.insert_node(n);
-	CHECK(g.is_node(n));
-}
 TEST_CASE("Constructor Unit Tests") {
-	SECTION("default"){
+	SECTION("default") {
 		CHECK_NOTHROW(gdwg::graph<int, std::string>());
 		auto g1 = gdwg::graph<int, std::string>();
 		CHECK(g1.empty() == true);
@@ -22,7 +22,7 @@ TEST_CASE("Constructor Unit Tests") {
 		auto g2 = gdwg::graph<int, int>();
 		CHECK(g2.empty() == true);
 	}
-	SECTION("initialiser list"){
+	SECTION("initialiser list") {
 		auto g1 = gdwg::graph<std::string, int>{"A", "B", "Marko"};
 		auto vec1 = g1.nodes();
 		CHECK(vec1.size() == 3);
@@ -30,7 +30,7 @@ TEST_CASE("Constructor Unit Tests") {
 		CHECK(g1.is_node("B") == true);
 		CHECK(g1.is_node("Marko") == true);
 
-		auto g2 = gdwg::graph<int, std::string>{-1234,-3,0,420};
+		auto g2 = gdwg::graph<int, std::string>{-1234, -3, 0, 420};
 		auto vec2 = g2.nodes();
 		CHECK(vec2.size() == 4);
 		CHECK(g2.is_node(-1234) == true);
@@ -38,7 +38,7 @@ TEST_CASE("Constructor Unit Tests") {
 		CHECK(g2.is_node(0) == true);
 		CHECK(g2.is_node(420) == true);
 	}
-	SECTION("interator"){
+	SECTION("interator") {
 		auto in_vec1 = std::vector<std::string>{"A", "B", "Marko"};
 		auto g1 = gdwg::graph<std::string, int>(in_vec1.begin(), in_vec1.end());
 		auto vec1 = g1.nodes();
@@ -47,7 +47,7 @@ TEST_CASE("Constructor Unit Tests") {
 		CHECK(g1.is_node("B") == true);
 		CHECK(g1.is_node("Marko") == true);
 
-		auto in_list1 = std::list<int>{-1234,-3,0,420};
+		auto in_list1 = std::list<int>{-1234, -3, 0, 420};
 		auto g2 = gdwg::graph<int, std::string>(in_list1.begin(), in_list1.end());
 		auto vec2 = g2.nodes();
 		CHECK(vec2.size() == 4);
@@ -56,7 +56,7 @@ TEST_CASE("Constructor Unit Tests") {
 		CHECK(g2.is_node(0) == true);
 		CHECK(g2.is_node(420) == true);
 	}
-	SECTION("move"){
+	SECTION("move") {
 		auto in_vec1 = std::vector<std::string>{"A", "B", "Marko"};
 		auto g1 = gdwg::graph<std::string, int>(in_vec1.begin(), in_vec1.end());
 		auto vec1 = g1.nodes();
@@ -77,7 +77,7 @@ TEST_CASE("Constructor Unit Tests") {
 		CHECK(g3.is_node("Marko") == true);
 		CHECK(g2.empty() == true);
 	}
-	SECTION("copy"){
+	SECTION("copy") {
 		auto in_vec1 = std::vector<std::string>{"A", "B", "Marko"};
 		auto g1 = gdwg::graph<std::string, int>(in_vec1.begin(), in_vec1.end());
 		auto vec1 = g1.nodes();
@@ -95,37 +95,41 @@ TEST_CASE("Constructor Unit Tests") {
 }
 
 TEST_CASE("Accessor Unit Tests") {
-	SECTION("is_node"){
+	SECTION("is_node") {
 		auto g1 = gdwg::graph<std::string, int>{"A", "B", "Marko"};
 		CHECK(g1.is_node("A") == true);
 		CHECK(g1.is_node("B") == true);
 		CHECK(g1.is_node("Marko") == true);
 		CHECK(g1.is_node("marko") == false);
 	}
-	SECTION("empty"){
+	SECTION("empty") {
 		auto g1 = gdwg::graph<std::string, int>();
 		CHECK(g1.empty() == true);
 		auto g2 = gdwg::graph<std::string, int>{"2"};
 		CHECK(g2.empty() == false);
 	}
-	SECTION("is_connected"){
+	SECTION("is_connected") {
 		auto g1 = gdwg::graph<std::string, int>{"A", "B", "Marko"};
 		g1.insert_edge("A", "B", 5);
 		CHECK(g1.is_connected("A", "B") == true);
 		CHECK(g1.is_connected("B", "A") == false);
 
 		CHECK_THROWS_AS(g1.is_connected("C", "A"), std::runtime_error);
-		CHECK_THROWS_WITH(g1.is_connected("C", "A"), "Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+		CHECK_THROWS_WITH(g1.is_connected("C", "A"),
+		                  "Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if "
+		                  "they don't exist in the graph");
 
 		CHECK_THROWS_AS(g1.is_connected("A", "D"), std::runtime_error);
-		CHECK_THROWS_WITH(g1.is_connected("A", "D"), "Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+		CHECK_THROWS_WITH(g1.is_connected("A", "D"),
+		                  "Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if "
+		                  "they don't exist in the graph");
 	}
-	SECTION("nodes"){
+	SECTION("nodes") {
 		auto g1 = gdwg::graph<std::string, int>{"B", "A", "Marko"};
 		auto src_vec = g1.nodes();
 		CHECK(src_vec == std::vector<std::string>{"A", "B", "Marko"});
 	}
-	SECTION("weights"){
+	SECTION("weights") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("hello");
 		g.insert_node("how");
@@ -135,14 +139,18 @@ TEST_CASE("Accessor Unit Tests") {
 		g.insert_edge("hello", "are", 8);
 		g.insert_edge("hello", "are", 2);
 		auto src_weights = g.weights("hello", "are");
-		CHECK(src_weights == std::vector<int>{2,8});
+		CHECK(src_weights == std::vector<int>{2, 8});
 
 		CHECK_THROWS_AS(g.weights("C", "are"), std::runtime_error);
-		CHECK_THROWS_WITH(g.weights("C", "are"), "Cannot call gdwg::graph<N, E>::weights if src or dst node don't exist in the graph");
+		CHECK_THROWS_WITH(g.weights("C", "are"),
+		                  "Cannot call gdwg::graph<N, E>::weights if src or dst node don't exist in "
+		                  "the graph");
 		CHECK_THROWS_AS(g.weights("are", "C"), std::runtime_error);
-		CHECK_THROWS_WITH(g.weights("are", "C"), "Cannot call gdwg::graph<N, E>::weights if src or dst node don't exist in the graph");
+		CHECK_THROWS_WITH(g.weights("are", "C"),
+		                  "Cannot call gdwg::graph<N, E>::weights if src or dst node don't exist in "
+		                  "the graph");
 	}
-	SECTION("find"){
+	SECTION("find") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("hello");
 		g.insert_node("how");
@@ -162,7 +170,7 @@ TEST_CASE("Accessor Unit Tests") {
 		auto it3 = g.find("ASFD", "how", 3);
 		CHECK(it3 == g.end());
 	}
-	SECTION("connections"){
+	SECTION("connections") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("hello");
 		g.insert_node("how");
@@ -177,11 +185,13 @@ TEST_CASE("Accessor Unit Tests") {
 		auto src_edges = g.connections("hello");
 		CHECK(src_edges == std::vector<std::string>{"are", "you?"});
 		CHECK_THROWS_AS(g.connections("C"), std::runtime_error);
-		CHECK_THROWS_WITH(g.connections("C"),"Cannot call gdwg::graph<N, E>::connections if src doesn't exist in the graph");
+		CHECK_THROWS_WITH(g.connections("C"),
+		                  "Cannot call gdwg::graph<N, E>::connections if src doesn't exist in the "
+		                  "graph");
 	}
 }
 TEST_CASE("Modifier Unit Tests") {
-	SECTION("insert_node"){
+	SECTION("insert_node") {
 		auto g = gdwg::graph<std::string, int>{};
 		CHECK(g.insert_node("hello") == true);
 		CHECK(g.is_node("hello") == true);
@@ -191,7 +201,7 @@ TEST_CASE("Modifier Unit Tests") {
 		vec1 = g.nodes();
 		CHECK(vec1.size() == 1);
 	}
-	SECTION("insert_edge"){
+	SECTION("insert_edge") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("hello");
 		g.insert_node("how");
@@ -200,17 +210,21 @@ TEST_CASE("Modifier Unit Tests") {
 
 		CHECK(g.insert_edge("hello", "are", 8) == true);
 		CHECK(g.insert_edge("hello", "are", 2) == true);
-		CHECK(g.insert_edge("hello", "you?", 1)== true);
-		CHECK(g.insert_edge("how", "hello", 4)== true);
+		CHECK(g.insert_edge("hello", "you?", 1) == true);
+		CHECK(g.insert_edge("how", "hello", 4) == true);
 
 		CHECK(g.insert_edge("hello", "are", 8) == false);
-		CHECK(g.insert_edge("how", "hello", 4)== false);
+		CHECK(g.insert_edge("how", "hello", 4) == false);
 		CHECK_THROWS_AS(g.insert_edge("C", "how", 2), std::runtime_error);
-		CHECK_THROWS_WITH(g.insert_edge("C", "how",2),"Cannot call gdwg::graph<N, E>::insert_edge when either src or dst node does not exist");
+		CHECK_THROWS_WITH(g.insert_edge("C", "how", 2),
+		                  "Cannot call gdwg::graph<N, E>::insert_edge when either src or dst node "
+		                  "does not exist");
 		CHECK_THROWS_AS(g.insert_edge("how", "C", 2), std::runtime_error);
-		CHECK_THROWS_WITH(g.insert_edge("how", "C",2),"Cannot call gdwg::graph<N, E>::insert_edge when either src or dst node does not exist");
+		CHECK_THROWS_WITH(g.insert_edge("how", "C", 2),
+		                  "Cannot call gdwg::graph<N, E>::insert_edge when either src or dst node "
+		                  "does not exist");
 	}
-	SECTION("replace_node"){
+	SECTION("replace_node") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("hello");
 		g.insert_node("how");
@@ -227,16 +241,16 @@ TEST_CASE("Modifier Unit Tests") {
 		CHECK(g.is_node("Hey") == true);
 		auto new_edge_vec = g.connections("Hey");
 		CHECK(old_edge_vec == new_edge_vec);
-		CHECK(g.weights("Hey", "are") == std::vector<int>{2,8});
+		CHECK(g.weights("Hey", "are") == std::vector<int>{2, 8});
 		CHECK(g.weights("Hey", "you?") == std::vector<int>{1});
 		CHECK(g.weights("how", "Hey") == std::vector<int>{4});
 
 		CHECK(g.replace_node("Hey", "how") == false);
 		CHECK_THROWS_AS(g.replace_node("C", "how"), std::runtime_error);
-		CHECK_THROWS_WITH(g.replace_node("C", "how"),"Cannot call gdwg::graph<N, E>::replace_node on a node that doesn't exist");
-
+		CHECK_THROWS_WITH(g.replace_node("C", "how"),
+		                  "Cannot call gdwg::graph<N, E>::replace_node on a node that doesn't exist");
 	}
-	SECTION("merge_replace_node"){
+	SECTION("merge_replace_node") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("A");
 		g.insert_node("B");
@@ -254,17 +268,20 @@ TEST_CASE("Modifier Unit Tests") {
 		CHECK(g.is_node("A") == true);
 		auto edge_vec = g.connections("A");
 		CHECK(edge_vec == std::vector<std::string>{"A", "C", "D"});
-		CHECK(g.weights("A", "A") == std::vector<int>{-1,1,3});
+		CHECK(g.weights("A", "A") == std::vector<int>{-1, 1, 3});
 		CHECK(g.weights("A", "C") == std::vector<int>{2});
 		CHECK(g.weights("A", "D") == std::vector<int>{4});
 		CHECK(g.weights("D", "A") == std::vector<int>{4});
 		CHECK_THROWS_AS(g.merge_replace_node("C", "how"), std::runtime_error);
-		CHECK_THROWS_WITH(g.merge_replace_node("C", "how"),"Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
+		CHECK_THROWS_WITH(g.merge_replace_node("C", "how"),
+		                  "Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if "
+		                  "they don't exist in the graph");
 		CHECK_THROWS_AS(g.merge_replace_node("how", "C"), std::runtime_error);
-		CHECK_THROWS_WITH(g.merge_replace_node("how", "C"),"Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if they don't exist in the graph");
-
+		CHECK_THROWS_WITH(g.merge_replace_node("how", "C"),
+		                  "Cannot call gdwg::graph<N, E>::merge_replace_node on old or new data if "
+		                  "they don't exist in the graph");
 	}
-	SECTION("erase_node"){
+	SECTION("erase_node") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("A");
 		g.insert_node("B");
@@ -285,7 +302,7 @@ TEST_CASE("Modifier Unit Tests") {
 
 		CHECK(g.erase_node("B") == false);
 	}
-	SECTION("erase_edge -> bool"){
+	SECTION("erase_edge -> bool") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("A");
 		g.insert_node("B");
@@ -296,17 +313,21 @@ TEST_CASE("Modifier Unit Tests") {
 		g.insert_edge("D", "B", 5);
 		g.insert_edge("D", "A", 5);
 
-		CHECK(g.erase_edge("D","B",4) == true);
+		CHECK(g.erase_edge("D", "B", 4) == true);
 		CHECK(g.connections("B") == std::vector<std::string>{"D"});
 		CHECK(g.connections("D") == std::vector<std::string>{"A", "B"});
 
-		CHECK(g.erase_edge("B","A", 4) == false);
+		CHECK(g.erase_edge("B", "A", 4) == false);
 		CHECK_THROWS_AS(g.erase_edge("C", "how", 4), std::runtime_error);
-		CHECK_THROWS_WITH(g.erase_edge("C", "how",4),"Cannot call gdwg::graph<N, E>::erase_edge on src or dst if they don't exist in the graph");
-		CHECK_THROWS_AS(g.erase_edge("how", "C",4), std::runtime_error);
-		CHECK_THROWS_WITH(g.erase_edge("how", "C",4),"Cannot call gdwg::graph<N, E>::erase_edge on src or dst if they don't exist in the graph");
+		CHECK_THROWS_WITH(g.erase_edge("C", "how", 4),
+		                  "Cannot call gdwg::graph<N, E>::erase_edge on src or dst if they don't "
+		                  "exist in the graph");
+		CHECK_THROWS_AS(g.erase_edge("how", "C", 4), std::runtime_error);
+		CHECK_THROWS_WITH(g.erase_edge("how", "C", 4),
+		                  "Cannot call gdwg::graph<N, E>::erase_edge on src or dst if they don't "
+		                  "exist in the graph");
 	}
-	SECTION("erase_edge(single) -> iterator"){
+	SECTION("erase_edge(single) -> iterator") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("A");
 		g.insert_node("B");
@@ -316,7 +337,6 @@ TEST_CASE("Modifier Unit Tests") {
 		g.insert_edge("D", "B", 4);
 		g.insert_edge("D", "B", 5);
 		g.insert_edge("D", "A", 5);
-
 
 		auto it = g.erase_edge(g.end());
 		CHECK(it == g.end());
@@ -344,9 +364,8 @@ TEST_CASE("Modifier Unit Tests") {
 		CHECK((*it3).weight == 5);
 		auto weight_vec = g2.weights("D", "B");
 		CHECK(weight_vec == std::vector<int>{5});
-
 	}
-	SECTION("erase_edge(range) -> iterator"){
+	SECTION("erase_edge(range) -> iterator") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("A");
 		g.insert_node("B");
@@ -356,7 +375,6 @@ TEST_CASE("Modifier Unit Tests") {
 		g.insert_edge("D", "B", 4);
 		g.insert_edge("D", "B", 5);
 		g.insert_edge("D", "A", 5);
-
 
 		auto it = g.erase_edge(g.end(), g.end());
 		CHECK(it == g.end());
@@ -399,7 +417,7 @@ TEST_CASE("Modifier Unit Tests") {
 		auto weight_vec2 = g3.weights("D", "B");
 		CHECK(weight_vec2 == std::vector<int>{5});
 	}
-	SECTION("clear"){
+	SECTION("clear") {
 		auto g = gdwg::graph<std::string, int>{};
 		g.insert_node("A");
 		g.insert_node("B");
@@ -414,26 +432,26 @@ TEST_CASE("Modifier Unit Tests") {
 }
 
 TEST_CASE("Operator Unit Tests") {
-	SECTION("=="){
+	SECTION("==") {
 		auto g1 = gdwg::graph<std::string, int>();
 		auto g2 = gdwg::graph<std::string, int>();
 		CHECK(g1 == g2);
 
-		auto g3 = gdwg::graph<int, int>{1,2,3,4,65,1234,-2};
-		auto g4 = gdwg::graph<int, int>{1234,-2,3,4,65,1,2};
+		auto g3 = gdwg::graph<int, int>{1, 2, 3, 4, 65, 1234, -2};
+		auto g4 = gdwg::graph<int, int>{1234, -2, 3, 4, 65, 1, 2};
 		CHECK(g3 == g4);
 
-		auto g5 = gdwg::graph<int, int>{1,2,3,4,65,1234,-2};
-		g5.insert_edge(1,2,90);
-		g5.insert_edge(2,1,91);
-		g5.insert_edge(2,2,92);
-		auto g6 = gdwg::graph<int, int>{1234,-2,3,4,65,1,2};
-		g6.insert_edge(1,2,90);
-		g6.insert_edge(2,1,91);
-		g6.insert_edge(2,2,92);
+		auto g5 = gdwg::graph<int, int>{1, 2, 3, 4, 65, 1234, -2};
+		g5.insert_edge(1, 2, 90);
+		g5.insert_edge(2, 1, 91);
+		g5.insert_edge(2, 2, 92);
+		auto g6 = gdwg::graph<int, int>{1234, -2, 3, 4, 65, 1, 2};
+		g6.insert_edge(1, 2, 90);
+		g6.insert_edge(2, 1, 91);
+		g6.insert_edge(2, 2, 92);
 		CHECK(g5 == g6);
 	}
-	SECTION("<<"){
+	SECTION("<<") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
@@ -455,15 +473,46 @@ TEST_CASE("Operator Unit Tests") {
 		g.insert_edge(5, 2, 7);
 		auto out = std::ostringstream{};
 		out << g;
+		auto const expected_output = std::string_view(R"(1 (
+  5 | -1
+)
+2 (
+  1 | 1
+  4 | 2
+)
+3 (
+  2 | 2
+  6 | -8
+)
+4 (
+  1 | -4
+  5 | 3
+)
+5 (
+  2 | 7
+)
+6 (
+  2 | 5
+  3 | 10
+)
+64 (
+)
+)");
+		CHECK(out.str() == expected_output);
+
+		auto g2 = gdwg::graph<int, int>();
+		auto out2 = std::ostringstream{};
+		out2 << g2;
+		CHECK(out2.str() == "");
 	}
 }
 TEST_CASE("Iterator Unit Tests") {
-	SECTION("empty Graph"){
+	SECTION("empty Graph") {
 		auto g = gdwg::graph<int, int>();
 		auto it = g.begin();
 		CHECK(it == g.end());
 	}
-	SECTION("A full (every node has an edge) Graph"){
+	SECTION("A full (every node has an edge) Graph") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
@@ -509,7 +558,7 @@ TEST_CASE("Iterator Unit Tests") {
 
 		CHECK(it == g.end());
 	}
-	SECTION("nodes with no edge Graph"){
+	SECTION("nodes with no edge Graph") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
@@ -518,7 +567,7 @@ TEST_CASE("Iterator Unit Tests") {
 		auto it = g.begin();
 		CHECK(it == g.end());
 	}
-	SECTION("starting nodes has no edge Graph"){
+	SECTION("starting nodes has no edge Graph") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
@@ -552,7 +601,7 @@ TEST_CASE("Iterator Unit Tests") {
 
 		CHECK(it == g.end());
 	}
-	SECTION("middle nodes has no edge Graph"){
+	SECTION("middle nodes has no edge Graph") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
@@ -586,7 +635,7 @@ TEST_CASE("Iterator Unit Tests") {
 
 		CHECK(it == g.end());
 	}
-	SECTION("ending nodes has no edge Graph"){
+	SECTION("ending nodes has no edge Graph") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
@@ -620,7 +669,7 @@ TEST_CASE("Iterator Unit Tests") {
 
 		CHECK(it == g.end());
 	}
-	SECTION("starting & ending nodes has edges Graph"){
+	SECTION("starting & ending nodes has edges Graph") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
@@ -642,7 +691,7 @@ TEST_CASE("Iterator Unit Tests") {
 		CHECK(it == g.end());
 	}
 
-	SECTION("operator--"){
+	SECTION("operator--") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
@@ -690,7 +739,7 @@ TEST_CASE("Iterator Unit Tests") {
 		CHECK(it == g.begin());
 	}
 
-	SECTION("operator=="){
+	SECTION("operator==") {
 		auto g = gdwg::graph<int, int>();
 		g.insert_node(1);
 		g.insert_node(2);
