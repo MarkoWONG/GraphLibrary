@@ -7,34 +7,23 @@
 
 auto main() -> int {
 
-	auto g = gdwg::graph<int, int>();
-	g.insert_node(1);
-	g.insert_node(2);
-	g.insert_node(3);
-	g.insert_node(4);
-	g.insert_node(5);
-	g.insert_node(6);
-	// g.insert_node(64);
+	auto g = gdwg::graph<std::string, int>{};
+	g.insert_node("A");
+	g.insert_node("B");
+	g.insert_node("C");
+	g.insert_node("D");
+	g.insert_edge("B", "D", 4);
+	g.insert_edge("D", "B", 4);
+	g.insert_edge("D", "B", 5);
+	g.insert_edge("D", "A", 5);
 
-	g.insert_edge(6, 2, 5);
-	g.insert_edge(6, 3, 10);
-	g.insert_edge(1, 5, -1);
-	g.insert_edge(1, 5, 2); //temp
-	g.insert_edge(1, 5, 3); //temp
 
-	g.insert_edge(4, 1, -4);
-	g.insert_edge(3, 2, 2);
-	g.insert_edge(2, 4, 2);
-	g.insert_edge(2, 1, 1);
-	g.insert_edge(3, 6, -8);
-	g.insert_edge(4, 5, 3);
-	g.insert_edge(5, 2, 7);
-	// std::cout << g;
-	// g.erase_edge(g.begin());
-	auto iter = g.find(5,2,8);
-	if (iter != g.end()){
-		std::cout << (*iter).from << " -> " << (*iter).to << " (weight " << (*iter).weight << ")\n";
+	auto it = g.erase_edge(g.begin(), g.end());
+	std::cout << g;
+	if (it == g.end()){
+		std::cout << "ok\n";
 	}
+	// g.erase_edge(it3);
 
 
 	// This will not compile straight away
@@ -56,9 +45,9 @@ auto main() -> int {
 	// This is a structured binding.
 	// https://en.cppreference.com/w/cpp/language/structured_binding
 	// It allows you to unpack your tuple.
-	for (auto const& [from, to, weight] : g) {
-		std::cout << from << " -> " << to << " (weight " << weight << ")\n";
-	}
+	// for (auto const& [from, to, weight] : g) {
+	// 	std::cout << from << " -> " << to << " (weight " << weight << ")\n";
+	// }
 
 	// for (auto it = g.end(); it != g.begin(); --it) {
     //     if (it != g.end()) {

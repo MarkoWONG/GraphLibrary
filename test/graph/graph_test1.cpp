@@ -327,6 +327,24 @@ TEST_CASE("Modifier Unit Tests") {
 		auto it2 = g.erase_edge(original_begin);
 		CHECK(it2 == next_val);
 		CHECK(g.begin() == next_val);
+
+		auto g2 = gdwg::graph<std::string, int>{};
+		g2.insert_node("A");
+		g2.insert_node("B");
+		g2.insert_node("C");
+		g2.insert_node("D");
+		g2.insert_edge("B", "D", 4);
+		g2.insert_edge("D", "B", 4);
+		g2.insert_edge("D", "B", 5);
+		g2.insert_edge("D", "A", 5);
+		auto val_it = g2.find("D", "B", 4);
+		auto it3 = g2.erase_edge(val_it);
+		CHECK((*it3).from == "D");
+		CHECK((*it3).to == "B");
+		CHECK((*it3).weight == 5);
+		auto weight_vec = g2.weights("D", "B");
+		CHECK(weight_vec == std::vector<int>{5});
+
 	}
 	SECTION("erase_edge(range) -> iterator"){
 		auto g = gdwg::graph<std::string, int>{};
@@ -345,7 +363,41 @@ TEST_CASE("Modifier Unit Tests") {
 
 		auto it2 = g.erase_edge(g.begin(), g.end());
 		CHECK(it2 == g.end());
-		CHECK(g.empty());
+		CHECK(g.is_connected("B", "D") == false);
+		CHECK(g.is_connected("D", "B") == false);
+		CHECK(g.is_connected("D", "A") == false);
+
+		auto g2 = gdwg::graph<std::string, int>{};
+		g2.insert_node("A");
+		g2.insert_node("B");
+		g2.insert_node("C");
+		g2.insert_node("D");
+		g2.insert_edge("B", "D", 4);
+		g2.insert_edge("D", "B", 4);
+		g2.insert_edge("D", "B", 5);
+		g2.insert_edge("D", "A", 5);
+		auto it3 = g2.erase_edge(g2.find("D", "A", 5), g2.find("D", "B", 5));
+		CHECK(g2.is_connected("B", "D") == true);
+		CHECK(g2.is_connected("D", "B") == false);
+		CHECK(g2.is_connected("D", "A") == false);
+		CHECK(it3 == g.end());
+
+		auto g3 = gdwg::graph<std::string, int>{};
+		g3.insert_node("A");
+		g3.insert_node("B");
+		g3.insert_node("C");
+		g3.insert_node("D");
+		g3.insert_edge("B", "D", 4);
+		g3.insert_edge("D", "B", 4);
+		g3.insert_edge("D", "B", 5);
+		g3.insert_edge("D", "A", 5);
+		auto it4 = g.erase_edge(g3.find("B", "D", 4), g3.find("D", "B", 4));
+		CHECK(g3.is_connected("B", "D") == false);
+		CHECK(g3.is_connected("D", "B") == true);
+		CHECK(g3.is_connected("D", "A") == false);
+		auto weight_vec = g3.weights("D", "B");
+		CHECK(weight_vec == std::vector<int>{5});
+		CHECK(it4 == g.end());
 	}
 	SECTION("clear"){
 		auto g = gdwg::graph<std::string, int>{};

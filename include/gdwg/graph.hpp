@@ -72,7 +72,6 @@ namespace gdwg {
 								inner_ = inner_iterator();
 								return *this;
 							}
-							std::cout << "empty \n";
 						}
 						inner_ = outer_->second.cbegin();
 					}
@@ -327,19 +326,21 @@ namespace gdwg {
 				if (i == end()){
 					return end();
 				}
-				auto next = ++i;
-				// TODO
-				// nodes_.get()->erase(i);
-				return next;
+				auto key = *(i.outer_);
+				auto pair = *(i.inner_);
+				++i;
+				nodes_.get()->at(key.first).erase(pair);
+				return iterator(i.outer_, i.inner_, nodes_.get()->end());
 			}
+
 			auto erase_edge(iterator i, iterator s) -> iterator{
-				if (i == end() || s == end()){
-					return end();
+				while (i != s){
+					i = erase_edge(i);
 				}
-				auto next = ++s;
-				// TODO
-				// nodes_.get()->erase(i,s);
-				return next;
+				if (s != end()){
+					++s;
+				}
+				return iterator(s.outer_, s.inner_, nodes_.get()->end());
 			}
 
 			auto clear() noexcept -> void{
