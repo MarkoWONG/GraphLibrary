@@ -7,22 +7,17 @@
 
 auto main() -> int {
 
-	auto g = gdwg::graph<std::string, int>{};
-	g.insert_node("A");
-	g.insert_node("B");
-	g.insert_node("C");
-	g.insert_node("D");
-	g.insert_edge("B", "D", 4);
-	g.insert_edge("D", "B", 4);
-	g.insert_edge("D", "B", 5);
-	g.insert_edge("D", "A", 5);
-
-
-	auto it = g.erase_edge(g.begin(), g.end());
-	std::cout << g;
-	if (it == g.end()){
-		std::cout << "ok\n";
-	}
+	auto g3 = gdwg::graph<std::string, int>{};
+		g3.insert_node("A");
+		g3.insert_node("B");
+		g3.insert_node("C");
+		g3.insert_node("D");
+		g3.insert_edge("B", "D", 4);
+		g3.insert_edge("D", "B", 4);
+		g3.insert_edge("D", "B", 5);
+		g3.insert_edge("D", "A", 5);
+		g3.erase_edge(g3.find("B", "D", 4), g3.find("D", "B", 5));
+	std::cout << g3;
 	// g.erase_edge(it3);
 
 

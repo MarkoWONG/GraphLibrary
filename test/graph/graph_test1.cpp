@@ -376,11 +376,12 @@ TEST_CASE("Modifier Unit Tests") {
 		g2.insert_edge("D", "B", 4);
 		g2.insert_edge("D", "B", 5);
 		g2.insert_edge("D", "A", 5);
-		auto it3 = g2.erase_edge(g2.find("D", "A", 5), g2.find("D", "B", 5));
+		g2.erase_edge(g2.find("D", "A", 5), g2.find("D", "B", 5));
 		CHECK(g2.is_connected("B", "D") == true);
-		CHECK(g2.is_connected("D", "B") == false);
+		CHECK(g2.is_connected("D", "B") == true);
 		CHECK(g2.is_connected("D", "A") == false);
-		CHECK(it3 == g.end());
+		auto weight_vec = g2.weights("D", "B");
+		CHECK(weight_vec == std::vector<int>{5});
 
 		auto g3 = gdwg::graph<std::string, int>{};
 		g3.insert_node("A");
@@ -391,13 +392,12 @@ TEST_CASE("Modifier Unit Tests") {
 		g3.insert_edge("D", "B", 4);
 		g3.insert_edge("D", "B", 5);
 		g3.insert_edge("D", "A", 5);
-		auto it4 = g.erase_edge(g3.find("B", "D", 4), g3.find("D", "B", 4));
+		g3.erase_edge(g3.find("B", "D", 4), g3.find("D", "B", 5));
 		CHECK(g3.is_connected("B", "D") == false);
 		CHECK(g3.is_connected("D", "B") == true);
 		CHECK(g3.is_connected("D", "A") == false);
-		auto weight_vec = g3.weights("D", "B");
-		CHECK(weight_vec == std::vector<int>{5});
-		CHECK(it4 == g.end());
+		auto weight_vec2 = g3.weights("D", "B");
+		CHECK(weight_vec2 == std::vector<int>{5});
 	}
 	SECTION("clear"){
 		auto g = gdwg::graph<std::string, int>{};
