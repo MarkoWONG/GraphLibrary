@@ -37,6 +37,10 @@ TEST_CASE("Constructor Unit Tests") {
 		CHECK(g2.is_node(-3) == true);
 		CHECK(g2.is_node(0) == true);
 		CHECK(g2.is_node(420) == true);
+
+		CHECK_NOTHROW(gdwg::graph<int, int>{});
+		auto g3 = gdwg::graph<int, int>{};
+		CHECK(g3.empty() == true);
 	}
 	SECTION("interator") {
 		auto in_vec1 = std::vector<std::string>{"A", "B", "Marko"};
@@ -55,6 +59,10 @@ TEST_CASE("Constructor Unit Tests") {
 		CHECK(g2.is_node(-3) == true);
 		CHECK(g2.is_node(0) == true);
 		CHECK(g2.is_node(420) == true);
+
+		auto in_vec2 = std::vector<std::string>{};
+		auto g3 = gdwg::graph<std::string, int>(in_vec2.begin(), in_vec2.end());
+		CHECK(g3.empty() == true);
 	}
 	SECTION("move") {
 		auto in_vec1 = std::vector<std::string>{"A", "B", "Marko"};
@@ -200,6 +208,8 @@ TEST_CASE("Modifier Unit Tests") {
 		CHECK(g.insert_node("hello") == false);
 		vec1 = g.nodes();
 		CHECK(vec1.size() == 1);
+		auto src_edges = g.connections("hello");
+		CHECK(src_edges.empty());
 	}
 	SECTION("insert_edge") {
 		auto g = gdwg::graph<std::string, int>{};
@@ -258,10 +268,17 @@ TEST_CASE("Modifier Unit Tests") {
 		g.insert_node("D");
 		g.insert_edge("B", "B", -1);
 		g.insert_edge("A", "B", 1);
+		g.insert_edge("A", "A", 1);
 		g.insert_edge("B", "A", 3);
 		g.insert_edge("B", "C", 2);
 		g.insert_edge("B", "D", 4);
 		g.insert_edge("D", "B", 4);
+
+		g.merge_replace_node("B", "B");
+		auto src_vec = g.nodes();
+		CHECK(src_vec == std::vector<std::string>{"A", "B", "C", "D"});
+		auto src_edges = g.connections("B");
+		CHECK(src_edges == std::vector<std::string>{"A", "B", "C", "D"});
 
 		g.merge_replace_node("B", "A");
 		CHECK(g.is_node("B") == false);
@@ -450,6 +467,12 @@ TEST_CASE("Operator Unit Tests") {
 		g6.insert_edge(2, 1, 91);
 		g6.insert_edge(2, 2, 92);
 		CHECK(g5 == g6);
+
+		auto g7 = gdwg::graph<int, int>{1234, -2, 3, 4, 65, 1, 2};
+		g6.insert_edge(1, 3, 90);
+		g6.insert_edge(2, 1, 91);
+		g6.insert_edge(2, 2, 92);
+		CHECK(g6 != g7);
 	}
 	SECTION("<<") {
 		auto g = gdwg::graph<int, int>();

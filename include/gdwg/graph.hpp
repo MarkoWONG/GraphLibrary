@@ -257,6 +257,9 @@ namespace gdwg {
 				throw std::runtime_error("Cannot call gdwg::graph<N, E>::merge_replace_node on old or "
 				                         "new data if they don't exist in the graph");
 			}
+			if (old_data == new_data){
+				return;
+			}
 			// For all outgoing edges
 			for (auto& [dst, weight] : nodes_.get()->at(old_data)) {
 				nodes_.get()->at(new_data).insert(std::make_pair(dst, weight));
