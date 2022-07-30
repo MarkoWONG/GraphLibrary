@@ -28,7 +28,7 @@ namespace gdwg {
 			using iterator_category = std::bidirectional_iterator_tag;
 
 			// Iterator constructor
-			iterator() = default;
+			explicit iterator() = default;
 
 			explicit iterator(outer_iterator outer, inner_iterator inner, outer_iterator end)
 			: outer_(outer)
