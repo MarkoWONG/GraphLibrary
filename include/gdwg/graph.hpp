@@ -322,11 +322,12 @@ namespace gdwg {
 			if (i == end()) {
 				return end();
 			}
-			auto key = *(i.outer_);
-			auto pair = *(i.inner_);
-			++i;
-			nodes_.get()->at(key.first).erase(pair);
-			return iterator(i.outer_, i.inner_, nodes_.get()->end());
+			auto next = std::next(i);
+			// make iterator unconstant to allow erase to modify.
+			// It's O(1) as the erase is call on a range of 1.
+			auto unconst_it = nodes_.get()->erase(i.outer_, i.outer_);
+			unconst_it->second.erase(i.inner_);
+			return iterator(next.outer_, next.inner_, nodes_.get()->end());
 		}
 
 		auto erase_edge(iterator i, iterator s) noexcept -> iterator {
